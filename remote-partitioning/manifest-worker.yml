@@ -1,0 +1,13 @@
+---
+applications:
+- name: partition-worker
+  memory: 1G
+  instances: 10
+  host: partition-worker-${random-word}
+  path: target/partition.jar
+  services:
+    - batch-psql
+    - batch-rabbitmq
+  env:
+    DEBUG: "true"
+    SPRING_PROFILES_ACTIVE: worker,cloud

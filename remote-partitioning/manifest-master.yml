@@ -1,0 +1,12 @@
+---
+applications:
+- name: partition-master
+  memory: 1G
+  instances: 1
+  host: partition-master-${random-word}
+  path: target/partition.jar
+  services:
+    - batch-psql
+    - batch-rabbitmq
+  env:
+    DEBUG: "true"
