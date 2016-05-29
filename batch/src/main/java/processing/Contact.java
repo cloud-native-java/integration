@@ -2,28 +2,6 @@ package processing;
 
 public class Contact {
 
-	private String fullName, email;
-
-	public Contact() {
-	}
-
-	@Override
-	public String toString() {
-		return "Contact{" +
-				"fullName='" + fullName + '\'' +
-				", email='" + email + '\'' +
-				", id=" + id +
-				'}';
-	}
-
-	public Contact(String fullName, String email, long id) {
-		this.fullName = fullName;
-		this.email = email;
-		this.id = id;
-	}
-
-	private long id;
-
 	public String getFullName() {
 		return fullName;
 	}
@@ -40,6 +18,14 @@ public class Contact {
 		this.email = email;
 	}
 
+	public boolean isValidEmail() {
+		return validEmail;
+	}
+
+	public void setValidEmail(boolean validEmail) {
+		this.validEmail = validEmail;
+	}
+
 	public long getId() {
 		return id;
 	}
@@ -47,4 +33,8 @@ public class Contact {
 	public void setId(long id) {
 		this.id = id;
 	}
+
+	private String fullName, email;
+	private boolean validEmail;
+	private long id;
 }

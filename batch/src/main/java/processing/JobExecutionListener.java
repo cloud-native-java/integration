@@ -9,8 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
-
 @Component
 public class JobExecutionListener {
 
@@ -19,16 +17,16 @@ public class JobExecutionListener {
 	private Log log = LogFactory.getLog(getClass());
 
 	@Autowired
-	public JobExecutionListener(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	public JobExecutionListener(JdbcTemplate template) {
+		this.jdbcTemplate = template;
 	}
 
 	@EventListener(JobExecutionEvent.class)
 	public void job(JobExecutionEvent executionEvent) {
 		log.info("jobExecutionEvent: " + executionEvent.getJobExecution().toString());
 		jdbcTemplate.query("select * from CONTACT",
-				(RowCallbackHandler) rs -> log.info(String.format("id=%s, full_name=%s, email=%s",
-						rs.getLong("id"), rs.getString("full_name"), rs.getString("email"))));
+				(RowCallbackHandler) rs -> log.info(String.format("id=%s, full_name=%s, email=%s, valid_email=%s",
+						rs.getLong("id"), rs.getString("full_name"), rs.getString("email"), rs.getBoolean("valid_email"))));
 	}
 }
 
