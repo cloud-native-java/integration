@@ -1,5 +1,7 @@
 package processing;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -14,16 +16,23 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.batch.JobExecutionEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 
 @EnableBatchProcessing
-@EnableAutoConfiguration
+@SpringBootApplication
 public class BatchApplication {
 
 	public static void main(String[] args) {
@@ -70,6 +79,7 @@ public class BatchApplication {
 	        StepBuilderFactory stepBuilderFactory,
 	        ItemReader<Contact> fileReader,
 	        ItemWriter<Contact> jdbcWriter) {
+
 
 		Step step = stepBuilderFactory.get("file-to-jdbc-step")
 				.<Contact, Contact>chunk(5)
