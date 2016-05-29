@@ -27,7 +27,7 @@ public class JobExecutionListener {
 	public void job(JobExecutionEvent executionEvent) {
 		log.info("jobExecutionEvent: " + executionEvent.getJobExecution().toString());
 		jdbcTemplate.query("select * from CONTACT",
-				(RowCallbackHandler) rs -> log.info(String.format("id=%s, email=%s, full_name=%s",
+				(RowCallbackHandler) rs -> log.info(String.format("id=%s, full_name=%s, email=%s",
 						rs.getLong("id"), rs.getString("full_name"), rs.getString("email"))));
 	}
 }
