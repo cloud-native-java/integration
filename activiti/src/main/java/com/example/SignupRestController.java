@@ -15,8 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// /{customerId}/signup
-
 @RestController
 @RequestMapping("/customers")
 class SignupRestController {
@@ -40,8 +38,7 @@ class SignupRestController {
 
 	// <2>
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<?> startProcess(
-	                                      @RequestBody Customer customer) {
+	public ResponseEntity<?> startProcess(@RequestBody Customer customer) {
 		Assert.notNull(customer);
 		Customer save = this.customerRepository.save(new Customer(customer.getFirstName(),
 				customer.getLastName(), customer.getEmail()));
@@ -71,13 +68,13 @@ class SignupRestController {
 	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/errors/{taskId}")
 	public void fixErrors(@PathVariable String customerId,
 	                      @PathVariable String taskId,
-	                      @RequestBody Customer fixedCustomer ) {
+	                      @RequestBody Customer fixedCustomer) {
 
 		Customer customer = this.customerRepository.findOne(Long.parseLong(customerId));
 		customer.setEmail(fixedCustomer.getEmail());
 		customer.setFirstName(fixedCustomer.getFirstName());
 		customer.setLastName(fixedCustomer.getLastName());
-		this.customerRepository.save( customer) ;
+		this.customerRepository.save(customer);
 
 		this.taskService.createTaskQuery()
 				.active()
@@ -85,7 +82,7 @@ class SignupRestController {
 				.includeProcessVariables()
 				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
 				.list()
-				.forEach(t ->  {
+				.forEach(t -> {
 					log.info("fixing customer# " + customerId + " for taskId " + taskId);
 					taskService.complete(t.getId(), Collections.singletonMap("formOK", true));
 				});

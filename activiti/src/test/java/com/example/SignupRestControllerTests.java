@@ -100,8 +100,8 @@ public class SignupRestControllerTests {
 					try {
 						customer.setEmail("valid@email.com");
 						this.mockMvc.perform(post(rootUrl + "/" + customerId + "/signup/errors/" + taskId)
-								.contentType(MediaType.APPLICATION_JSON)
-								.content(jsonForCustomer(customer)))
+								.content(jsonForCustomer(customer))
+								.contentType(MediaType.APPLICATION_JSON))
 								.andExpect(status().isOk());
 
 					} catch (Exception e) {
