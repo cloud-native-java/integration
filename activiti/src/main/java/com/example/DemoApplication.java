@@ -1,19 +1,7 @@
 package com.example;
 
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
-import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
-import org.activiti.engine.runtime.ProcessInstance;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.Map;
 
 @SpringBootApplication
 public class DemoApplication {
@@ -24,41 +12,8 @@ public class DemoApplication {
 }
 
 
-@Component
-class CheckForm {
 
-	private Log log = LogFactory.getLog(getClass());
-
-	@Autowired
-	private RuntimeService runtimeService;
-
-	public void execute(ActivityExecution activityExecution) throws Exception {
-		this.log.info("in " + getClass().getName() +
-				", customerId = " + activityExecution.getVariable("customerId"));
-
-		String formOK = "formOK";
-		Object variable = activityExecution.getVariable(formOK);
-
-		Map<String, Object> vars = Collections.singletonMap(formOK,  null == variable ? false : true );
-
-		this.runtimeService.setVariables(activityExecution.getId(), vars);
-
-		this.runtimeService.getVariables(activityExecution.getId()).forEach((k, v) -> log.info('\t' + k + '=' + v));
-
-	}
-
-}
-
-@Component
-class SendConfirmationEmail {
-
-	private Log log = LogFactory.getLog(getClass());
-
-	public void execute(ActivityExecution execution) throws Exception {
-		this.log.info("in " + getClass().getName() + ", customerId = "
-				+ execution.getVariable("customerId"));
-	}
-}
+/*
 
 @Component
 class SignupProcessCommandLineRunner implements CommandLineRunner {
@@ -129,4 +84,4 @@ class SignupProcessCommandLineRunner implements CommandLineRunner {
 		this.log.info("end");
 
 	}
-}
+}*/
