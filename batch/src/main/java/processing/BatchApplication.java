@@ -137,10 +137,10 @@ public class BatchApplication {
 
 			boolean valid = responseEntity.getBody().get("isValid");
 			log.info("email validated? " + valid);
+			item.setValidEmail(valid);
 
 			if (!valid) throw new InvalidEmailException(item.getEmail());
 
-			item.setValidEmail(valid);
 			return item;
 		};
 	}
