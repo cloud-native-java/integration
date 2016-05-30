@@ -15,8 +15,5 @@ class SendConfirmationEmail {
 	public void execute(ActivityExecution execution) throws Exception {
 		this.log.info("in " + getClass().getName() + ", customerId = "
 				+ execution.getVariable("customerId"));
-
-//		String uuid = UUID.randomUUID().toString();
-//		execution.setVariable("confirmationID", uuid);
 	}
 }
