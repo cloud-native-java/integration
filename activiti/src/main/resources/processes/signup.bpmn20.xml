@@ -7,38 +7,31 @@
         expressionLanguage="http://www.w3.org/1999/XPath"
         targetNamespace="http://www.activiti.org/bpmn2.0">
 
-    <!--
-    https://raw.githubusercontent.com/joshlong/spring-integration-activiti/master/src/test/resources/processes/signup.bpmn20.xml
-    -->
+
     <process name="signup" id="signup">
+        <!--1-->
         <startEvent id="start"/>
 
-        <sequenceFlow sourceRef="start" targetRef="sign-up"/>
+        <!--2-->
+        <sequenceFlow sourceRef="start" targetRef="check-form"/>
 
-        <userTask name="sign-up" id="sign-up">
-            <humanPerformer>
-                <resourceAssignmentExpression>
-                    <formalExpression>customer</formalExpression>
-                </resourceAssignmentExpression>
-            </humanPerformer>
-        </userTask>
-
-        <sequenceFlow sourceRef="sign-up" targetRef="check-form"/>
-
-        <serviceTask id="check-form" activiti:expression="#{checkForm.execute(execution)}"/>
+        <!--3-->
+        <serviceTask id="check-form" name="check-form" activiti:expression="#{checkForm.execute(execution)}"/>
 
         <sequenceFlow sourceRef="check-form" targetRef="form-completed-decision-gateway"/>
 
+        <!--4-->
         <exclusiveGateway id="form-completed-decision-gateway"/>
 
-        <sequenceFlow id="formOK" sourceRef="form-completed-decision-gateway" targetRef="send-confirmation-email">
+        <sequenceFlow name="formOK" id="formOK" sourceRef="form-completed-decision-gateway" targetRef="send-confirmation-email">
             <conditionExpression xsi:type="tFormalExpression">${formOK == true}</conditionExpression>
         </sequenceFlow>
 
-        <sequenceFlow id="formNotOK" sourceRef="form-completed-decision-gateway" targetRef="fix-errors">
-            <conditionExpression xsi:type="tFormalExpression">${formOK == false}</conditionExpression>
+        <sequenceFlow  id="formNotOK" name="formNotOK" sourceRef="form-completed-decision-gateway" targetRef="fix-errors">
+            <conditionExpression  xsi:type="tFormalExpression">${formOK == false}</conditionExpression>
         </sequenceFlow>
 
+        <!--5-->
         <userTask name="fix-errors" id="fix-errors">
             <humanPerformer>
                 <resourceAssignmentExpression>
@@ -49,14 +42,13 @@
 
         <sequenceFlow sourceRef="fix-errors" targetRef="check-form"/>
 
-        <serviceTask id="send-confirmation-email" activiti:expression="#{sendConfirmationEmail.execute(execution)}"/>
+        <!--6-->
+        <serviceTask id="send-confirmation-email" name="send-confirmation-email" activiti:expression="#{sendConfirmationEmail.execute(execution)}"/>
 
         <sequenceFlow sourceRef="send-confirmation-email" targetRef="confirm-email"/>
 
+        <!--7-->
         <userTask name="confirm-email" id="confirm-email">
-            <documentation>
-                confirm the user's email
-            </documentation>
             <humanPerformer>
                 <resourceAssignmentExpression>
                     <formalExpression>customer</formalExpression>

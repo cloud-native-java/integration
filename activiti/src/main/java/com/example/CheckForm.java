@@ -3,6 +3,7 @@ package com.example;
 
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,20 +16,30 @@ import java.util.Map;
 class CheckForm {
 
 	private final RuntimeService runtimeService;
-
+	private final CustomerRepository customerRepository;
 	private Log log = LogFactory.getLog(getClass());
 
 	@Autowired
-	public CheckForm(RuntimeService runtimeService) {
+	public CheckForm(RuntimeService runtimeService, CustomerRepository customerRepository) {
 		this.runtimeService = runtimeService;
+		this.customerRepository = customerRepository;
 	}
 
 	public void execute(ActivityExecution activityExecution) throws Exception {
-		this.log.info("in " + getClass().getName() + ", customerId = " + activityExecution.getVariable("customerId"));
+		Long customerId = Long.parseLong(
+				activityExecution.getVariable("customerId", String.class));
+
+		this.log.info("in " + getClass().getName() + ", customerId = " + customerId);
+
+		Customer customer = this.customerRepository.findOne(customerId);
+
 		String formOK = "formOK";
-		Object variable = activityExecution.getVariable(formOK);
-		Map<String, Object> vars = Collections.singletonMap(formOK, null == variable ? false : true);
+		Map<String, Object> vars = Collections.singletonMap(formOK,
+				this.validate(customer));
 		this.runtimeService.setVariables(activityExecution.getId(), vars);
 	}
 
+	protected boolean validate(Customer customer) {
+		return StringUtils.defaultString(customer.getEmail()).contains("@");
+	}
 }

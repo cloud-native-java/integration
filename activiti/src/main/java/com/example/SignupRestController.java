@@ -8,52 +8,53 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// /{customerId}/signup
+
 @RestController
-@RequestMapping("/customers/{customerId}/signup")
+@RequestMapping("/customers")
 class SignupRestController {
 
 	public static final String CUSTOMER_ID_PV_KEY = "customerId";
 
 	private final RuntimeService runtimeService;
 	private final TaskService taskService;
-
+	private final CustomerRepository customerRepository;
 	private Log log = LogFactory.getLog(getClass());
 
+	// <1>
 	@Autowired
-	public SignupRestController(RuntimeService runtimeService, TaskService taskService) {
+	public SignupRestController(RuntimeService runtimeService,
+	                            TaskService taskService,
+	                            CustomerRepository repository) {
 		this.runtimeService = runtimeService;
 		this.taskService = taskService;
+		this.customerRepository = repository;
 	}
 
+	// <2>
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<?> startProcess(@PathVariable String customerId) {
+	public ResponseEntity<?> startProcess(
+	                                      @RequestBody Customer customer) {
+		Assert.notNull(customer);
+		Customer save = this.customerRepository.save(new Customer(customer.getFirstName(),
+				customer.getLastName(), customer.getEmail()));
+
 		String processInstanceId = this.runtimeService.startProcessInstanceByKey("signup",
-				Collections.singletonMap(CUSTOMER_ID_PV_KEY, customerId)).getId();
-		this.log.info("starting processInstance ID " + processInstanceId);
-		this.taskService.createTaskQuery()
-				.active()
-				.taskName("sign-up")
-				.includeProcessVariables()
-				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
-				.list()
-				.forEach(t -> {
-					log.info(t.toString());
-					taskService.complete(t.getId());
-				});
-		log.info("finished sign-up");
-		return ResponseEntity.ok(processInstanceId);
+				Collections.singletonMap(CUSTOMER_ID_PV_KEY, Long.toString(save.getId()))).getId();
+		this.log.info("started sign-up. the processInstance ID is " + processInstanceId);
+
+		return ResponseEntity.ok(save.getId());
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/errors")
+	// <3>
+	@RequestMapping(method = RequestMethod.GET, value = "/{customerId}/signup/errors")
 	public List<String> readErrors(@PathVariable String customerId) {
 		return this.taskService.createTaskQuery()
 				.active()
@@ -66,19 +67,32 @@ class SignupRestController {
 				.collect(Collectors.toList());
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "/errors/{taskId}")
+	// <4>
+	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/errors/{taskId}")
 	public void fixErrors(@PathVariable String customerId,
-	                      @PathVariable String taskId) {
+	                      @PathVariable String taskId,
+	                      @RequestBody Customer fixedCustomer ) {
+
+		Customer customer = this.customerRepository.findOne(Long.parseLong(customerId));
+		customer.setEmail(fixedCustomer.getEmail());
+		customer.setFirstName(fixedCustomer.getFirstName());
+		customer.setLastName(fixedCustomer.getLastName());
+		this.customerRepository.save( customer) ;
+
 		this.taskService.createTaskQuery()
 				.active()
 				.taskId(taskId)
 				.includeProcessVariables()
 				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
 				.list()
-				.forEach(t -> taskService.complete(t.getId(), Collections.singletonMap("formOK", true)));
+				.forEach(t ->  {
+					log.info("fixing customer# " + customerId + " for taskId " + taskId);
+					taskService.complete(t.getId(), Collections.singletonMap("formOK", true));
+				});
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "/confirmation")
+	// <5>
+	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/confirmation")
 	public void confirm(@PathVariable String customerId) {
 		this.taskService.createTaskQuery()
 				.active()
