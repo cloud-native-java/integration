@@ -4,7 +4,6 @@ import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.batch.integration.launch.JobLaunchingGateway;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +12,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.dsl.file.Files;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.support.MessageBuilder;
@@ -38,17 +38,11 @@ public class IntegrationConfiguration {
 	}
 
 	@Bean
-	MessageSource<File> fileMessageSource(@Value("${input-directory:${HOME}/Desktop/in}") File directory) {
-		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
-		fileReadingMessageSource.setDirectory(directory);
-		return fileReadingMessageSource;
-	}
-
-	@Bean
-	IntegrationFlow etlFlow(MessageSource<File> files, JobLauncher launcher, Job job) {
+	IntegrationFlow etlFlow(@Value("${input-directory:${HOME}/Desktop/in}") File directory, JobLauncher launcher, Job job) {
 
 		return IntegrationFlows
-				.from(files, consumerSpec -> consumerSpec.poller(pollerSpec -> pollerSpec.fixedRate(1000)))
+				.from(Files.inboundAdapter(directory)
+						.autoCreateDirectory(true), consumerSpec -> consumerSpec.poller(pollerSpec -> pollerSpec.fixedRate(1000)))
 				.handle(File.class, (file, headers) -> {
 					JobParameters parameters = new JobParametersBuilder()
 							.addParameter("file", new JobParameter(file.getAbsolutePath()))

@@ -2,8 +2,27 @@ package processing;
 
 public class Contact {
 
+	public Contact(String full_name, String email, long id) {
+		this.fullName = full_name;
+		this.email = email;
+		this.id = id;
+	}
+
+	public Contact() {
+	}
+
 	public String getFullName() {
 		return fullName;
+	}
+
+	@Override
+	public String toString() {
+		return "Contact{" +
+				"fullName='" + fullName + '\'' +
+				", email='" + email + '\'' +
+				", validEmail=" + validEmail +
+				", id=" + id +
+				'}';
 	}
 
 	public void setFullName(String fullName) {

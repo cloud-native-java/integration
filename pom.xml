@@ -16,6 +16,7 @@
     <modules>
         <module>activiti</module>
         <module>activiti-integration</module>
+        <module>eai-and-integration</module>
         <module>remote-partitioning</module>
         <module>batch-and-integration</module>
         <module>batch</module>
