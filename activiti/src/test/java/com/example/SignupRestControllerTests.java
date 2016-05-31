@@ -34,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringApplicationConfiguration(classes = DemoApplication.class)
 public class SignupRestControllerTests {
 
+	private static final AtomicInteger counter = new AtomicInteger();
+
 	private MockMvc mockMvc;
 
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -50,12 +52,8 @@ public class SignupRestControllerTests {
 
 	@Autowired
 	private CustomerRepository repository;
-	private static Log log = LogFactory.getLog(SignupRestController.class);
 
-	String jsonForCustomer(Customer customer) throws Exception {
-		return this.objectMapper.writerFor(Customer.class)
-				.writeValueAsString(customer);
-	}
+	private static Log log = LogFactory.getLog(SignupRestController.class);
 
 	protected void doTestSignup(Customer input) throws Exception {
 		// customers/{customerId}/signup
@@ -81,7 +79,6 @@ public class SignupRestControllerTests {
 				() -> new AssertionError("no record stored in the database for email '" + email + "'"));
 
 		String customerId = Long.toString(customer.getId());
-
 
 		// see if there are any errors to be corrected
 		String contentAsString = this.mockMvc
@@ -141,7 +138,6 @@ public class SignupRestControllerTests {
 
 		@Override
 		public Object postProcessAfterInitialization(Object o, String s) throws BeansException {
-			LogFactory.getLog(getClass()).info("post processing " + o.getClass());
 			if (o.getClass().isAssignableFrom(CheckForm.class)) {
 				return this.counting(CheckForm.class.cast(o));
 			}
@@ -162,5 +158,8 @@ public class SignupRestControllerTests {
 		}
 	}
 
-	private static final AtomicInteger counter = new AtomicInteger();
+	private String jsonForCustomer(Customer customer) throws Exception {
+		return this.objectMapper.writerFor(Customer.class)
+				.writeValueAsString(customer);
+	}
 }

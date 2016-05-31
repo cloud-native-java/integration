@@ -3,43 +3,50 @@ package com.example;
 
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Map;
 
-@Component
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+@Service
 class CheckForm {
 
 	private final RuntimeService runtimeService;
 	private final CustomerRepository customerRepository;
 	private Log log = LogFactory.getLog(getClass());
+	private final EmailValidationService emailValidationService;
 
 	@Autowired
-	public CheckForm(RuntimeService runtimeService, CustomerRepository customerRepository) {
+	public CheckForm(
+
+			EmailValidationService emailValidationService,
+			RuntimeService runtimeService,
+			CustomerRepository customerRepository) {
 		this.runtimeService = runtimeService;
 		this.customerRepository = customerRepository;
+		this.emailValidationService = emailValidationService;
 	}
 
-	public void execute(ActivityExecution activityExecution) throws Exception {
+	public void execute(ActivityExecution e) throws Exception {
+
 		Long customerId = Long.parseLong(
-				activityExecution.getVariable("customerId", String.class));
-
+				e.getVariable("customerId", String.class));
 		this.log.info("in " + getClass().getName() + ", customerId = " + customerId);
-
-		Customer customer = this.customerRepository.findOne(customerId);
-
-		String formOK = "formOK";
-		Map<String, Object> vars = Collections.singletonMap(formOK,
-				this.validate(customer));
-		this.runtimeService.setVariables(activityExecution.getId(), vars);
+		Map<String, Object> vars = Collections.singletonMap("formOK",
+				validated(this.customerRepository.findOne(customerId)));
+		this.runtimeService.setVariables(e.getId(), vars);
 	}
 
-	protected boolean validate(Customer customer) {
-		return StringUtils.defaultString(customer.getEmail()).contains("@");
+	private boolean validated(Customer customer) {
+		return !isEmpty(customer.getFirstName()) &&
+				!isEmpty(customer.getLastName()) &&
+				this.emailValidationService.isEmailValid(customer.getEmail());
 	}
+
+
 }

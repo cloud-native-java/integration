@@ -22,18 +22,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.sql.DataSource;
-import java.util.Map;
 
 @EnableBatchProcessing
 @SpringBootApplication
@@ -116,31 +110,11 @@ public class BatchApplication {
 
 	// <6>
 	@Bean
-	ItemProcessor<Contact, Contact> validatingProcessor(RestTemplate restTemplate,
-	                                                    @Value("${emailvalidator.uri}") String uri,
-	                                                    @Value("${mashape.key}") String mashapeKey) {
+	ItemProcessor<Contact, Contact> validatingProcessor(EmailValidationService emailValidationService) {
 		return item -> {
-
-			UriComponents emailValidatedUri = UriComponentsBuilder.fromHttpUrl(uri)
-					.buildAndExpand(item.getEmail());
-
-			RequestEntity<Void> requestEntity = RequestEntity.get(emailValidatedUri.toUri())
-					.header("X-Mashape-Key", mashapeKey)
-					.build();
-
-			ParameterizedTypeReference<Map<String, Boolean>> ptr =
-					new ParameterizedTypeReference<Map<String, Boolean>>() {
-					};
-
-			log.info("attempting to validate email " + item.getEmail());
-			ResponseEntity<Map<String, Boolean>> responseEntity = restTemplate.exchange(requestEntity, ptr);
-
-			boolean valid = responseEntity.getBody().get("isValid");
-			log.info("email validated? " + valid);
+			boolean valid = emailValidationService.isEmailValid(item.getEmail());
 			item.setValidEmail(valid);
-
 			if (!valid) throw new InvalidEmailException(item.getEmail());
-
 			return item;
 		};
 	}

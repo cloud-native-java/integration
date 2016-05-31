@@ -3,11 +3,11 @@ package com.example;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-@Component
+@Service
 class SendConfirmationEmail {
 
 	private Log log = LogFactory.getLog(getClass());
@@ -15,5 +15,7 @@ class SendConfirmationEmail {
 	public void execute(ActivityExecution execution) throws Exception {
 		this.log.info("in " + getClass().getName() + ", customerId = "
 				+ execution.getVariable("customerId"));
+
+		// exercise to reader: send an email, perhaps using Sendgrid?
 	}
 }
