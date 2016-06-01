@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -29,6 +31,7 @@ class EmailValidationService {
 		this.restTemplate = restTemplate;
 	}
 
+	@Retryable
 	public boolean isEmailValid(String email) {
 		UriComponents emailValidatedUri = UriComponentsBuilder.fromHttpUrl(uri)
 				.buildAndExpand(email);

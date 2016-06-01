@@ -18,6 +18,7 @@
         <module>activiti-integration</module>
         <module>eai-and-integration</module>
         <module>remote-partitioning</module>
+        <module>shaky-service-to-service-calls</module>
         <module>batch-and-integration</module>
         <module>batch</module>
     </modules>

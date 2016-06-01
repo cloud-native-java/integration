@@ -3,8 +3,6 @@ package com.example;
 
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,30 +14,24 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 @Service
 class CheckForm {
 
-	private final RuntimeService runtimeService;
+	private final RuntimeService runtimeService; // <1>
 	private final CustomerRepository customerRepository;
-	private Log log = LogFactory.getLog(getClass());
 	private final EmailValidationService emailValidationService;
 
 	@Autowired
-	public CheckForm(
-
-			EmailValidationService emailValidationService,
-			RuntimeService runtimeService,
-			CustomerRepository customerRepository) {
+	public CheckForm(EmailValidationService emailValidationService,
+	                 RuntimeService runtimeService,
+	                 CustomerRepository customerRepository) {
 		this.runtimeService = runtimeService;
 		this.customerRepository = customerRepository;
 		this.emailValidationService = emailValidationService;
 	}
 
 	public void execute(ActivityExecution e) throws Exception {
-
-		Long customerId = Long.parseLong(
-				e.getVariable("customerId", String.class));
-		this.log.info("in " + getClass().getName() + ", customerId = " + customerId);
+		Long customerId = Long.parseLong(e.getVariable("customerId", String.class));
 		Map<String, Object> vars = Collections.singletonMap("formOK",
 				validated(this.customerRepository.findOne(customerId)));
-		this.runtimeService.setVariables(e.getId(), vars);
+		this.runtimeService.setVariables(e.getId(), vars); // <2>
 	}
 
 	private boolean validated(Customer customer) {
