@@ -13,11 +13,9 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
-abstract public class AbstractGreetingClientTest<T extends GreetingClient> {
-
+public abstract class AbstractGreetingClientTest<T extends GreetingClient> {
 
 	private final Logger log = Logger.getLogger(getClass());
-
 	protected ApplicationContext serviceContext;
 	protected ApplicationContext clientContext;
 	protected T client;
