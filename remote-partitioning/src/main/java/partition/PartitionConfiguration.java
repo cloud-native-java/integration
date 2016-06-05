@@ -39,6 +39,7 @@ import java.util.Map;
 public class PartitionConfiguration {
 
 	public static final String STEP_1 = "step1";
+
 	public static final String WORKER_STEP = "workerStep";
 
 	private Log log = LogFactory.getLog(getClass());
@@ -71,8 +72,10 @@ public class PartitionConfiguration {
 	}
 
 	@Bean
-	MessageChannelPartitionHandler partitionHandler(MessagingTemplate messagingTemplate,
-	                                                JobExplorer jobExplorer, PartitionChannels master) throws Exception {
+	MessageChannelPartitionHandler partitionHandler(
+			MessagingTemplate messagingTemplate,
+			JobExplorer jobExplorer,
+			PartitionChannels master) throws Exception {
 		MessageChannelPartitionHandler partitionHandler = new MessageChannelPartitionHandler();
 		partitionHandler.setReplyChannel(master.masterRequestsAggregated());
 		partitionHandler.setMessagingOperations(messagingTemplate);
@@ -107,10 +110,13 @@ public class PartitionConfiguration {
 
 	@Bean
 	@StepScope
-	JdbcBatchItemWriter<Customer> customerItemWriter(DataSource dataSource) {
+	JdbcBatchItemWriter<Customer> customerItemWriter(
+			DataSource dataSource) {
 		JdbcBatchItemWriter<Customer> writer = new JdbcBatchItemWriter<>();
-		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-		writer.setSql("INSERT INTO NEW_CUSTOMER VALUES (:id, :firstName, :lastName, :birthdate)");
+		writer.setItemSqlParameterSourceProvider(
+				new BeanPropertyItemSqlParameterSourceProvider<>());
+		writer.setSql("INSERT INTO NEW_CUSTOMER VALUES " +
+				" (:id, :firstName, :lastName, :birthdate)");
 		writer.setDataSource(dataSource);
 		return writer;
 	}
