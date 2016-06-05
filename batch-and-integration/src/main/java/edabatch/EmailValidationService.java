@@ -1,4 +1,4 @@
-package processing;
+package edabatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

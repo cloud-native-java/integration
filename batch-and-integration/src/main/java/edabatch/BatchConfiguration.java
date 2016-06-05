@@ -1,4 +1,4 @@
-package processing;
+package edabatch;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Job;
