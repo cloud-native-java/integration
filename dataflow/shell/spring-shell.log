@@ -39,3 +39,5 @@ stream list
 stream destroy --name s1
 stream create --name s1 --definition "time | streamnow | log " 
 stream deploy --name s1
+// dataflow 1.2.0.M1 log opened at 2016-06-06 17:04:00
+app list
