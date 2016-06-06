@@ -38,9 +38,10 @@ interface GreetingGateway {
 @RestController
 class GreetingProducer {
 
-	// <4>
+
 	private final GreetingGateway gateway;
 
+	// <4>
 	@Autowired
 	GreetingProducer(GreetingGateway gateway) {
 		this.gateway = gateway;
