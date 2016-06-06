@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
@@ -16,8 +17,9 @@
     <modules>
         <module>activiti</module>
         <module>activiti-integration</module>
-        edabatch        <module>remote-partitioning</module>
+        <module>remote-partitioning</module>
         <module>shaky-service-to-service-calls</module>
+        <module>stream</module>
         <module>batch-and-integration</module>
         <module>batch</module>
     </modules>
@@ -40,7 +42,9 @@
                                 <build.vcsRevision>{{TRAVIS_COMMIT}}</build.vcsRevision>
                             </deployProperties>
                             <publisher>
-                                <contextUrl>https://cloudnativejava.artifactoryonline.com/cloudnativejava</contextUrl>
+                                <contextUrl>
+                                    https://cloudnativejava.artifactoryonline.com/cloudnativejava
+                                </contextUrl>
                                 <username>${env.ARTIFACTORY_USERNAME}</username>
                                 <password>${env.ARTIFACTORY_PASSWORD}</password>
                                 <repoKey>libs-release-local</repoKey>
@@ -49,7 +53,8 @@
                             <buildInfo>
                                 <agentName>Travis CI</agentName>
                                 <buildNumber>{{TRAVIS_BUILD_NUMBER}}</buildNumber>
-                                <buildUrl>http://travis-ci.org/{{TRAVIS_REPO_SLUG}}/builds/{{TRAVIS_BUILD_ID}}
+                                <buildUrl>
+                                    http://travis-ci.org/{{TRAVIS_REPO_SLUG}}/builds/{{TRAVIS_BUILD_ID}}
                                 </buildUrl>
                                 <principal>{{USER}}</principal>
                                 <vcsRevision>{{TRAVIS_COMMIT}}</vcsRevision>
@@ -68,13 +73,17 @@
             </snapshots>
             <id>central</id>
             <name>libs-release</name>
-            <url>https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-release</url>
+            <url>
+                https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-release
+            </url>
         </repository>
         <repository>
             <snapshots/>
             <id>snapshots</id>
             <name>libs-snapshot</name>
-            <url>https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-snapshot</url>
+            <url>
+                https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-snapshot
+            </url>
         </repository>
     </repositories>
     <pluginRepositories>
@@ -84,13 +93,17 @@
             </snapshots>
             <id>central</id>
             <name>plugins-release</name>
-            <url>https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-release</url>
+            <url>
+                https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-release
+            </url>
         </pluginRepository>
         <pluginRepository>
             <snapshots/>
             <id>snapshots</id>
             <name>plugins-snapshot</name>
-            <url>https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-snapshot</url>
+            <url>
+                https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-snapshot
+            </url>
         </pluginRepository>
     </pluginRepositories>
 
