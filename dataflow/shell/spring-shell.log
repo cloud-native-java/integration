@@ -1,0 +1,41 @@
+// dataflow 1.2.0.M1 log opened at 2016-05-24 21:40:42
+module list
+module register --type task --name batch101 --uri maven://com.example:batch101:0.0.1-SNAPSHOT
+module list
+task create --name batchnow --definition "batch101 --foo=bar" 
+task launch --name batchnow 
+task execution list 
+module register --type processor --name streamnow --uri maven://com.example:stream101:0.0.1-SNAPSHOT
+module list
+module register --name time --type source --uri maven://org.springframework.cloud.stream.app:time-source-rabbitmq:1.0.0.BUILD-SNAPSHOT
+module register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbitmq:1.0.0.BUILD-SNAPSHOT
+module list
+stream create --name streammeow --definition "time | streamnow | log " 
+// [failed] stream deploy --name streammeow
+// [failed] module register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:1.0.0.BUILD-SNAPSHOT
+// [failed] module unregister --name log
+// [failed] module unregister --name sink:log
+module list
+module unregister --name log --type sink 
+module register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:1.0.0.BUILD-SNAPSHOT
+stream list
+stream destroy --name streammeow
+// [failed] stream create --name s1 --definition " time | s1 | log " 
+// [failed] stream create --name s1 --definition " time | streameow | log " 
+module list
+stream list
+stream create --name s1 --definition "time | streamnow | log " 
+// [failed] stream deploy --name s1 
+module unregister --name time --type source
+// [failed] module unregister --name sink:log 
+// [failed] module unregister sink:log 
+module unregister --name log  --type sink 
+module list
+module register --type source --name time --uri maven://org.springframework.cloud.stream.app:time-source-rabbit:1.0.0.BUILD-SNAPSHOT
+module register --type sink  --name log --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:1.0.0.BUILD-SNAPSHOT
+module list
+// [failed] stream create --name s1 --definition "time | streamnow | log " 
+stream list
+stream destroy --name s1
+stream create --name s1 --definition "time | streamnow | log " 
+stream deploy --name s1

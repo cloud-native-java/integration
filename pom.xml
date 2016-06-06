@@ -12,8 +12,8 @@
         <artifactId>parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath/>
-
     </parent>
+
     <modules>
         <module>activiti</module>
         <module>activiti-integration</module>
