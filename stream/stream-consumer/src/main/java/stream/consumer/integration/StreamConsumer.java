@@ -12,23 +12,14 @@ import org.springframework.messaging.SubscribableChannel;
 import stream.consumer.ConsumerChannels;
 
 @SpringBootApplication
-@EnableBinding(ConsumerChannels.class)
+@EnableBinding(ConsumerChannels.class) // <1>
 public class StreamConsumer {
 
 	public static void main(String args[]) {
 		SpringApplication.run(StreamConsumer.class, args);
 	}
 
-	@Bean
-	IntegrationFlow direct(ConsumerChannels channels) {
-		return incomingMessageFlow(channels.directed(), "directed");
-	}
-
-	@Bean
-	IntegrationFlow broadcast(ConsumerChannels channels) {
-		return incomingMessageFlow(channels.broadcasts(), "broadcast");
-	}
-
+	// <2>
 	private IntegrationFlow incomingMessageFlow(
 			SubscribableChannel incoming, String prefix) {
 
@@ -45,5 +36,15 @@ public class StreamConsumer {
 			})
 			.get();
 		//@formatter:on
+	}
+
+	@Bean
+	IntegrationFlow direct(ConsumerChannels channels) {
+		return incomingMessageFlow(channels.directed(), "directed");
+	}
+
+	@Bean
+	IntegrationFlow broadcast(ConsumerChannels channels) {
+		return incomingMessageFlow(channels.broadcasts(), "broadcast");
 	}
 }

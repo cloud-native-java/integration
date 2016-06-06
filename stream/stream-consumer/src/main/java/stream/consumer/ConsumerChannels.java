@@ -9,6 +9,7 @@ public interface ConsumerChannels {
 	String DIRECTED = "directed";
 	String BROADCASTS = "broadcasts";
 
+	// <1>
 	@Input(DIRECTED)
 	SubscribableChannel directed();
 
