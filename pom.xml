@@ -19,6 +19,7 @@
         <module>activiti-integration</module>
         <module>remote-partitioning</module>
         <module>shaky-service-to-service-calls</module>
+        <module>dataflow</module>
         <module>stream</module>
         <module>batch-and-integration</module>
         <module>batch</module>
