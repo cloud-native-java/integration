@@ -8,25 +8,23 @@
         <artifactId>dataflow</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
-    <name>integration/dataflow/server</name>
-    <artifactId>server</artifactId>
-
+    <name>integration/dataflow/stream-example</name>
+    <artifactId>stream-example</artifactId>
     <dependencies>
         <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-java-dsl</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-dataflow-server-local</artifactId>
+            <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -35,6 +33,4 @@
             </plugin>
         </plugins>
     </build>
-
-
 </project>

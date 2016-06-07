@@ -15,5 +15,7 @@
     <modules>
         <module>server</module>
         <module>shell</module>
+        <module>stream-example</module>
+        <module>task-example</module>
     </modules>
 </project>

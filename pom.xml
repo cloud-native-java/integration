@@ -23,6 +23,7 @@
         <module>stream</module>
         <module>batch-and-integration</module>
         <module>batch</module>
+        <module>task</module>
     </modules>
 
     <build>

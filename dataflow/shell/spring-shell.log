@@ -41,3 +41,30 @@ stream create --name s1 --definition "time | streamnow | log "
 stream deploy --name s1
 // dataflow 1.2.0.M1 log opened at 2016-06-06 17:04:00
 app list
+// dataflow 1.2.0.M1 log opened at 2016-06-06 18:33:34
+app list
+stream create --name ticktock --definition "time | log" 
+// [failed] stream deploy --name ticktock
+// [failed] stream deploy --name ticktock
+stream create --name ticktock --definition "time | log" 
+// [failed] stream deploy --name ticktock
+stream create --name ticktock --definition "time | log" 
+stream deploy --name ticktock
+// [failed] stream create --name ticktock --definition "time | log" 
+stream destroy --name ticktock
+stream create --name ticktock --definition "time | log" 
+stream deploy --name ticktock
+task create --name whattimeisit --definition timestamp 
+task list
+task launch --name whattimeisit
+task list
+task list
+stream create --name ticktock --definition "time | log" 
+stream deploy --name ticktock
+stream create --name ticktock --definition "time | log" 
+stream deploy --name ticktock
+stream deploy --name ticktock
+// [failed] stream deploy --name ticktock
+stream create --name ticktock --definition "time | log" 
+stream deploy --name ticktock
+// dataflow 1.2.0.M1 log opened at 2016-06-07 02:02:14
