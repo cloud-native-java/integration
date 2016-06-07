@@ -68,3 +68,31 @@ stream deploy --name ticktock
 stream create --name ticktock --definition "time | log" 
 stream deploy --name ticktock
 // dataflow 1.2.0.M1 log opened at 2016-06-07 02:02:14
+// dataflow 1.2.0.M1 log opened at 2016-06-07 02:09:07
+app list
+app register --name args --type task --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:1.0.0.BUILD-SNAPSHOT
+// [failed] app unregister args
+// [failed] app unregister  --name args
+// [failed] app unregister --name args
+// [failed] app register --name args --type task --uri maven://cnj:task-example:1.0.0.BUILD-SNAPSHOT
+app register --name cnjtask --type task --uri maven://cnj:task-example:1.0.0.BUILD-SNAPSHOT
+app list
+task create --name args --definition cnjtask
+// [failed] task launch --name args
+// dataflow 1.2.0.M1 log opened at 2016-06-07 02:16:26
+// dataflow 1.2.0.M1 log opened at 2016-06-07 02:16:48
+app register --name args --type task --uri maven://cnj:task-example:jar:1.0.0-SNAPSHOT
+// [failed] task launch --name args
+task create --definition args --name args
+task launch --name args
+task list
+task list
+// dataflow 1.2.0.M1 log opened at 2016-06-07 02:21:39
+app register --name args --type task --uri maven://cnj:task-example:jar:1.0.0-SNAPSHOT 
+task create --name args-task --definition "args --p1=1 --p2=2" 
+task list
+task launch --name args-task 
+app register --name brackets --type processor --uri maven://cnj:stream-example:jar:1.0.0-SNAPSHOT
+stream create --name bracketedticktock --definition "time | brackets | log" 
+stream list
+stream deploy --name bracketedticktock 
