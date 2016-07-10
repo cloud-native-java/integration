@@ -12,14 +12,18 @@
     <name>integration/task</name>
     <artifactId>task</artifactId>
     <properties>
-        <spring-cloud-task.version>1.0.0.BUILD-SNAPSHOT</spring-cloud-task.version>
+
     </properties>
 
     <dependencies>
-        <dependency>
+        <!--<dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-task-core</artifactId>
             <version>${spring-cloud-task.version}</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-task-starter</artifactId>
         </dependency>
     </dependencies>
 </project>
