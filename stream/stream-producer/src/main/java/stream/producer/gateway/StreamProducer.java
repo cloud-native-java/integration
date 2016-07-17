@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import stream.producer.ProducerChannels;
 
 @SpringBootApplication
-@EnableBinding(ProducerChannels.class) // <1>
-@IntegrationComponentScan // <2>
+@EnableBinding(ProducerChannels.class)
+// <1>
+@IntegrationComponentScan
+// <2>
 public class StreamProducer {
 
 	public static void main(String args[]) {
@@ -37,7 +39,6 @@ interface GreetingGateway {
 
 @RestController
 class GreetingProducer {
-
 
 	private final GreetingGateway gateway;
 

@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.channel.DirectChannel;
 
-
 @Configuration
 @EnableBinding(PartitionWorkerChannels.PartitionWorker.class)
 @Profile(PartitionWorkerConfiguration.WORKER_PROFILE)
@@ -33,6 +32,7 @@ class PartitionWorkerChannels {
 
 		@Input(WORKER_REQUESTS)
 		DirectChannel workerRequests();
+
 		@Output(WORKER_REPLIES)
 		DirectChannel workerReplies();
 

@@ -30,7 +30,6 @@ class PartitionChannels {
 		return partition.masterReplies();
 	}
 
-
 	public interface Partition {
 		String MASTER_REPLIES = "masterReplies";
 		String MASTER_REQUESTS = "masterRequests";

@@ -1,6 +1,5 @@
 package partition;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Job;
@@ -20,7 +19,9 @@ import org.springframework.util.StopWatch;
 class JobConfiguration {
 
 	@Bean
-	Job job(JobBuilderFactory jobBuilderFactory, @Qualifier(PartitionConfiguration.STEP_1) Step step) throws Exception {
+	Job job(JobBuilderFactory jobBuilderFactory,
+			@Qualifier(PartitionConfiguration.STEP_1) Step step)
+			throws Exception {
 
 		JobExecutionListener jobExecutionListener = new JobExecutionListener() {
 
@@ -40,11 +41,7 @@ class JobConfiguration {
 			}
 		};
 
-		return jobBuilderFactory
-				.get("job")
-				.listener(jobExecutionListener)
-				.incrementer(new RunIdIncrementer())
-				.start(step)
-				.build();
+		return jobBuilderFactory.get("job").listener(jobExecutionListener)
+				.incrementer(new RunIdIncrementer()).start(step).build();
 	}
 }

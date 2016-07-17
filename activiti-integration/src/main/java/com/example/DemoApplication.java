@@ -44,8 +44,7 @@ public class DemoApplication {
 
 				Message<?> executionMessage = MessageBuilder
 						.withPayload(execution)
-						.setHeader("executionId", execution.getId())
-						.build();
+						.setHeader("executionId", execution.getId()).build();
 
 				channels.requests().send(executionMessage);
 			}
@@ -54,22 +53,24 @@ public class DemoApplication {
 
 	@Bean
 	IntegrationFlow requestsFlow(MessageChannels channels) {
-		return IntegrationFlows.from(channels.requests())
-				.handle(msg -> msg.getHeaders().entrySet()
+		return IntegrationFlows
+				.from(channels.requests())
+				.handle(msg -> msg
+						.getHeaders()
+						.entrySet()
 						.forEach(e -> log.info(e.getKey() + '=' + e.getValue())))
 				.get();
 	}
 
 	@Bean
-	IntegrationFlow repliesFlow(MessageChannels channels,
-								ProcessEngine engine) {
-		return IntegrationFlows.from(channels.replies())
+	IntegrationFlow repliesFlow(MessageChannels channels, ProcessEngine engine) {
+		return IntegrationFlows
+				.from(channels.replies())
 				.handle(msg -> engine.getRuntimeService().signal(
 						String.class.cast(msg.getHeaders().get("executionId"))))
 				.get();
 	}
 }
-
 
 @Configuration
 class MessageChannels {
@@ -108,8 +109,7 @@ class ProcessResumingRestController {
 	@RequestMapping(method = RequestMethod.GET, value = "/resume/{executionId}")
 	void resume(@PathVariable String executionId) {
 		Message<String> build = MessageBuilder.withPayload(executionId)
-				.setHeader("executionId", executionId)
-				.build();
+				.setHeader("executionId", executionId).build();
 		this.messageChannels.replies().send(build);
 	}
 }

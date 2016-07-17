@@ -17,12 +17,9 @@ public class Contact {
 
 	@Override
 	public String toString() {
-		return "Contact{" +
-				"fullName='" + fullName + '\'' +
-				", email='" + email + '\'' +
-				", validEmail=" + validEmail +
-				", id=" + id +
-				'}';
+		return "Contact{" + "fullName='" + fullName + '\'' + ", email='"
+				+ email + '\'' + ", validEmail=" + validEmail + ", id=" + id
+				+ '}';
 	}
 
 	public void setFullName(String fullName) {

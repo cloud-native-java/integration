@@ -16,6 +16,7 @@ class SendConfirmationEmail {
 		this.log.info("in " + getClass().getName() + ", customerId = "
 				+ execution.getVariable("customerId"));
 
-		// exercise to reader: send an email, perhaps using Sendgrid?
+		// exercise to reader: send an email, perhaps
+		// using Sendgrid?
 	}
 }

@@ -1,6 +1,5 @@
 package partition.workers;
 
-
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.step.StepLocator;
@@ -31,7 +30,8 @@ class PartitionWorkerConfiguration {
 	}
 
 	@Bean
-	StepExecutionRequestHandler stepExecutionRequestHandler(JobExplorer explorer, StepLocator stepLocator) {
+	StepExecutionRequestHandler stepExecutionRequestHandler(
+			JobExplorer explorer, StepLocator stepLocator) {
 		StepExecutionRequestHandler handler = new StepExecutionRequestHandler();
 		handler.setStepLocator(stepLocator);
 		handler.setJobExplorer(explorer);

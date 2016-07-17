@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 @EnableRetry
 @EnableCircuitBreaker
-@EnableAspectJAutoProxy (proxyTargetClass = true)
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @SpringBootApplication
 public class GreetingClientApplication {
 

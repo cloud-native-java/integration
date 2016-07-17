@@ -40,46 +40,48 @@ public class IntegrationConfiguration {
 
 	// <1>
 	@Bean
-	IntegrationFlow etlFlow(@Value("${input-directory:${HOME}/Desktop/in}") File directory,
-	                        JobLauncher launcher,
-	                        Job job) {
+	IntegrationFlow etlFlow(
+			@Value("${input-directory:${HOME}/Desktop/in}") File directory,
+			JobLauncher launcher, Job job) {
 		// @formatter:off
 		return IntegrationFlows
-			.from(Files.inboundAdapter(directory)
-					.autoCreateDirectory(true),
-				consumer -> consumer.poller(
-					poller -> poller.fixedRate(1000)))
-			.handle(File.class, (file, headers) -> {
+				.from(Files.inboundAdapter(directory).autoCreateDirectory(true),
+						consumer -> consumer.poller(poller -> poller
+								.fixedRate(1000)))
+				.handle(File.class,
+						(file, headers) -> {
 
-				// <2>
-				JobParameters parameters = new JobParametersBuilder()
-					.addParameter( "file",
-						new JobParameter(file.getAbsolutePath()))
-					.toJobParameters();
+							// <2>
+							JobParameters parameters = new JobParametersBuilder()
+									.addParameter(
+											"file",
+											new JobParameter(file
+													.getAbsolutePath()))
+									.toJobParameters();
 
-				return MessageBuilder.withPayload(
-						new JobLaunchRequest(job, parameters))
-					.setHeader(FileHeaders.ORIGINAL_FILE,
-						file.getAbsolutePath())
-					.copyHeadersIfAbsent(headers)
-					.build();
-			})
-			// <3>
-			.handle(new JobLaunchingGateway(launcher))
-			.routeToRecipients(spec -> spec
-				.recipient(invalid(),
-					ms -> !jobFinished(ms.getPayload()))
-				.recipient(completed(),
-					ms -> jobFinished(ms.getPayload()))
-			)
-			.get();
+							return MessageBuilder
+									.withPayload(
+											new JobLaunchRequest(job,
+													parameters))
+									.setHeader(FileHeaders.ORIGINAL_FILE,
+											file.getAbsolutePath())
+									.copyHeadersIfAbsent(headers).build();
+						})
+				// <3>
+				.handle(new JobLaunchingGateway(launcher))
+				.routeToRecipients(
+						spec -> spec.recipient(invalid(),
+								ms -> !jobFinished(ms.getPayload()))
+								.recipient(completed(),
+										ms -> jobFinished(ms.getPayload())))
+				.get();
 		// @formatter:on
 	}
 
 	// <4>
 	private boolean jobFinished(Object payload) {
-		return JobExecution.class.cast(payload)
-				.getExitStatus().equals(ExitStatus.COMPLETED);
+		return JobExecution.class.cast(payload).getExitStatus()
+				.equals(ExitStatus.COMPLETED);
 	}
 
 	@Bean
@@ -88,22 +90,22 @@ public class IntegrationConfiguration {
 			JdbcTemplate template) {
 		// @formatter:off
 		return IntegrationFlows
-			.from(completed())
-			.handle(JobExecution.class, (je, headers) -> {
-				String ogFileName = String.class.cast(
-					headers.get(FileHeaders.ORIGINAL_FILE));
-				File file = new File(ogFileName);
-				mv(file, finished);
-				List<Contact> contacts = template.query(
-					"select * from CONTACT", (rs, i) -> new Contact(
-							rs.getString("full_name"),
-							rs.getString("email"),
-							rs.getLong("id")
-					));
-				contacts.forEach(log::info);
-				return null;
-			})
-			.get();
+				.from(completed())
+				.handle(JobExecution.class,
+						(je, headers) -> {
+							String ogFileName = String.class.cast(headers
+									.get(FileHeaders.ORIGINAL_FILE));
+							File file = new File(ogFileName);
+							mv(file, finished);
+							List<Contact> contacts = template.query(
+									"select * from CONTACT",
+									(rs, i) -> new Contact(rs
+											.getString("full_name"), rs
+											.getString("email"), rs
+											.getLong("id")));
+							contacts.forEach(log::info);
+							return null;
+						}).get();
 		// @formatter:on
 	}
 
@@ -112,15 +114,15 @@ public class IntegrationConfiguration {
 			@Value("${error-directory:${HOME}/Desktop/errors}") File errors) {
 		// @formatter:off
 		return IntegrationFlows
-			.from(this.invalid())
-			.handle(JobExecution.class, (je, headers) -> {
-				String ogFileName = String.class.cast(
-						headers.get(FileHeaders.ORIGINAL_FILE));
-				File file = new File(ogFileName);
-				mv(file, errors);
-				return null;
-			})
-			.get();
+				.from(this.invalid())
+				.handle(JobExecution.class,
+						(je, headers) -> {
+							String ogFileName = String.class.cast(headers
+									.get(FileHeaders.ORIGINAL_FILE));
+							File file = new File(ogFileName);
+							mv(file, errors);
+							return null;
+						}).get();
 		// @formatter:on
 	}
 
@@ -129,13 +131,12 @@ public class IntegrationConfiguration {
 		try {
 			Assert.isTrue(out.exists() || out.mkdirs());
 			try (InputStream inStream = new BufferedInputStream(
-					  new FileInputStream(in));
-			     OutputStream outStream = new BufferedOutputStream(
-					  new FileOutputStream(out))) {
+					new FileInputStream(in));
+					OutputStream outStream = new BufferedOutputStream(
+							new FileOutputStream(out))) {
 				StreamUtils.copy(inStream, outStream);
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 		// @formatter:on

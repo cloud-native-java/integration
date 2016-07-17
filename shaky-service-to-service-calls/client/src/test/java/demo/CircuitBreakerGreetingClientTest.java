@@ -1,7 +1,7 @@
 package demo;
 
 public class CircuitBreakerGreetingClientTest
-		extends AbstractGreetingClientTest<CircuitBreakerGreetingClient> {
+ extends AbstractGreetingClientTest<CircuitBreakerGreetingClient> {
 
 	@Override
 	protected CircuitBreakerGreetingClient obtainClient() {

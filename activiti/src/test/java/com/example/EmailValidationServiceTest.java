@@ -14,10 +14,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 public class EmailValidationServiceTest {
 
 	@Test
-	public void testFeignPoweredClient()
-			throws Exception {
+	public void testFeignPoweredClient() throws Exception {
 
-		Assert.assertTrue(this.emailValidationService.isEmailValid("george@email.com"));
+		Assert.assertTrue(this.emailValidationService
+				.isEmailValid("george@email.com"));
 		Assert.assertFalse(this.emailValidationService.isEmailValid("george"));
 	}
 

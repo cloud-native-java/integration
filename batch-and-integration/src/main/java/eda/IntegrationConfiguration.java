@@ -18,28 +18,28 @@ public class IntegrationConfiguration {
 
 	private Log log = LogFactory.getLog(getClass());
 
-
 	@Bean
-	IntegrationFlow etlFlow(@Value("${input-directory:${HOME}/Desktop/in}") File directory) {
+	IntegrationFlow etlFlow(
+			@Value("${input-directory:${HOME}/Desktop/in}") File directory) {
 		// @formatter:off
 		return IntegrationFlows
-			// <1>
-			.from(Files.inboundAdapter(directory).autoCreateDirectory(true),
-				consumer -> consumer.poller(poller -> poller.fixedRate(1000)))
-			// <2>
-			.handle(File.class, (file, headers) -> {
-				log.info("we noticed a new file, " + file);
-				return file;
-			})
-			// <3>
-			.routeToRecipients(spec ->
-				spec
-					.recipient(csv(),
-						msg -> hasExt(msg.getPayload(), ".csv"))
-					.recipient(txt(),
-						msg -> hasExt(msg.getPayload(), ".txt"))
-			)
-			.get();
+				// <1>
+				.from(Files.inboundAdapter(directory).autoCreateDirectory(true),
+						consumer -> consumer.poller(poller -> poller
+								.fixedRate(1000)))
+				// <2>
+				.handle(File.class, (file, headers) -> {
+					log.info("we noticed a new file, " + file);
+					return file;
+				})
+				// <3>
+				.routeToRecipients(
+						spec -> spec
+								.recipient(csv(),
+										msg -> hasExt(msg.getPayload(), ".csv"))
+								.recipient(txt(),
+										msg -> hasExt(msg.getPayload(), ".txt")))
+				.get();
 		// @formatter:on
 	}
 
@@ -63,22 +63,18 @@ public class IntegrationConfiguration {
 	// <6>
 	@Bean
 	IntegrationFlow txtFlow() {
-		return IntegrationFlows.from(txt()).
-				handle(File.class, (f, h) -> {
-					log.info("file is .txt!");
-					return null;
-				})
-				.get();
+		return IntegrationFlows.from(txt()).handle(File.class, (f, h) -> {
+			log.info("file is .txt!");
+			return null;
+		}).get();
 	}
 
 	// <7>
 	@Bean
 	IntegrationFlow csvFlow() {
-		return IntegrationFlows.from(csv()).
-				handle(File.class, (f, h) -> {
-					log.info("file is .csv!");
-					return null;
-				})
-				.get();
+		return IntegrationFlows.from(csv()).handle(File.class, (f, h) -> {
+			log.info("file is .csv!");
+			return null;
+		}).get();
 	}
 }

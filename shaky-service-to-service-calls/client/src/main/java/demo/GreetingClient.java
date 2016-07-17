@@ -1,6 +1,6 @@
 package demo;
 
-public interface GreetingClient  {
+public interface GreetingClient {
 
-	String greet(String name ) ;
+	String greet(String name);
 }

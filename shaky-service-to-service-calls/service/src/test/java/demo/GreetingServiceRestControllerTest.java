@@ -39,14 +39,19 @@ public class GreetingServiceRestControllerTest {
 	public void greetings() throws Exception {
 		ObjectMapper om = new ObjectMapper();
 		String cnj = "CNJ";
-		this.mockMvc.perform(MockMvcRequestBuilders.get("/hi/" + cnj)
-				.contentType(MediaType.APPLICATION_JSON))
+		this.mockMvc
+				.perform(
+						MockMvcRequestBuilders.get("/hi/" + cnj).contentType(
+								MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(mvcResult -> {
-					String json = mvcResult.getResponse().getContentAsString();
-					Map<String, String> mapOfData = om.readerFor(new TypeReference<Map<String, String>>() { })
-							.readValue(json.getBytes());
-					assertTrue(mapOfData.get("greeting").contains(cnj));
-				});
+				.andExpect(
+						mvcResult -> {
+							String json = mvcResult.getResponse()
+									.getContentAsString();
+							Map<String, String> mapOfData = om.readerFor(
+									new TypeReference<Map<String, String>>() {
+									}).readValue(json.getBytes());
+							assertTrue(mapOfData.get("greeting").contains(cnj));
+						});
 	}
 }

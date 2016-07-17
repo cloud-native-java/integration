@@ -1,6 +1,5 @@
 package com.example;
 
-
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.TaskInfo;
@@ -29,8 +28,7 @@ class SignupRestController {
 	// <1>
 	@Autowired
 	public SignupRestController(RuntimeService runtimeService,
-	                            TaskService taskService,
-	                            CustomerRepository repository) {
+			TaskService taskService, CustomerRepository repository) {
 		this.runtimeService = runtimeService;
 		this.taskService = taskService;
 		this.customerRepository = repository;
@@ -40,12 +38,16 @@ class SignupRestController {
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<?> startProcess(@RequestBody Customer customer) {
 		Assert.notNull(customer);
-		Customer save = this.customerRepository.save(new Customer(customer.getFirstName(),
-				customer.getLastName(), customer.getEmail()));
+		Customer save = this.customerRepository.save(new Customer(customer
+				.getFirstName(), customer.getLastName(), customer.getEmail()));
 
-		String processInstanceId = this.runtimeService.startProcessInstanceByKey("signup",
-				Collections.singletonMap(CUSTOMER_ID_PV_KEY, Long.toString(save.getId()))).getId();
-		this.log.info("started sign-up. the processInstance ID is " + processInstanceId);
+		String processInstanceId = this.runtimeService
+				.startProcessInstanceByKey(
+						"signup",
+						Collections.singletonMap(CUSTOMER_ID_PV_KEY,
+								Long.toString(save.getId()))).getId();
+		this.log.info("started sign-up. the processInstance ID is "
+				+ processInstanceId);
 
 		return ResponseEntity.ok(save.getId());
 	}
@@ -53,51 +55,48 @@ class SignupRestController {
 	// <3>
 	@RequestMapping(method = RequestMethod.GET, value = "/{customerId}/signup/errors")
 	public List<String> readErrors(@PathVariable String customerId) {
-		return this.taskService.createTaskQuery()
-				.active()
-				.taskName("fix-errors")
-				.includeProcessVariables()
+		return this.taskService.createTaskQuery().active()
+				.taskName("fix-errors").includeProcessVariables()
 				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
-				.list()
-				.stream()
-				.map(TaskInfo::getId)
+				.list().stream().map(TaskInfo::getId)
 				.collect(Collectors.toList());
 	}
 
 	// <4>
 	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/errors/{taskId}")
 	public void fixErrors(@PathVariable String customerId,
-	                      @PathVariable String taskId,
-	                      @RequestBody Customer fixedCustomer) {
+			@PathVariable String taskId, @RequestBody Customer fixedCustomer) {
 
-		Customer customer = this.customerRepository.findOne(Long.parseLong(customerId));
+		Customer customer = this.customerRepository.findOne(Long
+				.parseLong(customerId));
 		customer.setEmail(fixedCustomer.getEmail());
 		customer.setFirstName(fixedCustomer.getFirstName());
 		customer.setLastName(fixedCustomer.getLastName());
 		this.customerRepository.save(customer);
 
-		this.taskService.createTaskQuery()
+		this.taskService
+				.createTaskQuery()
 				.active()
 				.taskId(taskId)
 				.includeProcessVariables()
 				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
 				.list()
-				.forEach(t -> {
-					log.info("fixing customer# " + customerId + " for taskId " + taskId);
-					taskService.complete(t.getId(), Collections.singletonMap("formOK", true));
-				});
+				.forEach(
+						t -> {
+							log.info("fixing customer# " + customerId
+									+ " for taskId " + taskId);
+							taskService.complete(t.getId(),
+									Collections.singletonMap("formOK", true));
+						});
 	}
 
 	// <5>
 	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/confirmation")
 	public void confirm(@PathVariable String customerId) {
-		this.taskService.createTaskQuery()
-				.active()
-				.taskName("confirm-email")
+		this.taskService.createTaskQuery().active().taskName("confirm-email")
 				.includeProcessVariables()
 				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
-				.list()
-				.forEach(t -> {
+				.list().forEach(t -> {
 					log.info(t.toString());
 					taskService.complete(t.getId());
 				});

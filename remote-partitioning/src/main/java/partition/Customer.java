@@ -33,6 +33,8 @@ class Customer {
 
 	@Override
 	public String toString() {
-		return "Customer{" + "id=" + id + ", firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", birthdate=" + birthdate + '}';
+		return "Customer{" + "id=" + id + ", firstName='" + firstName + '\''
+				+ ", lastName='" + lastName + '\'' + ", birthdate=" + birthdate
+				+ '}';
 	}
 }

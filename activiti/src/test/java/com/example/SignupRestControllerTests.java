@@ -63,52 +63,64 @@ public class SignupRestControllerTests {
 
 		String drJson = jsonForCustomer(input);
 
-		String rootUrl = "/customers"; // + customerId + "/signup";
+		String rootUrl = "/customers"; // + customerId
+										// +
+										// "/signup";
 
 		// start signup
-		this.mockMvc.perform(post(rootUrl).content(drJson).contentType(MediaType.APPLICATION_JSON))
+		this.mockMvc
+				.perform(
+						post(rootUrl).content(drJson).contentType(
+								MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(mvcResult -> {
-					String contentAsString = mvcResult.getResponse().getContentAsString();
-					Long customerId = Long.parseLong(contentAsString);
-					assertNotNull(customerId);
-					assertTrue(customerId > 0);
-				});
+				.andExpect(
+						mvcResult -> {
+							String contentAsString = mvcResult.getResponse()
+									.getContentAsString();
+							Long customerId = Long.parseLong(contentAsString);
+							assertNotNull(customerId);
+							assertTrue(customerId > 0);
+						});
 
 		Customer customer = this.repository.findByEmail(email).orElseThrow(
-				() -> new AssertionError("no record stored in the database for email '" + email + "'"));
+				() -> new AssertionError(
+						"no record stored in the database for email '" + email
+								+ "'"));
 
 		String customerId = Long.toString(customer.getId());
 
 		// see if there are any errors to be corrected
 		String contentAsString = this.mockMvc
 				.perform(get(rootUrl + "/" + customerId + "/signup/errors"))
-				.andExpect(status().isOk())
-				.andReturn().getResponse().getContentAsString();
+				.andExpect(status().isOk()).andReturn().getResponse()
+				.getContentAsString();
 		ObjectMapper mapper = new ObjectMapper();
 		TypeReference<List<Long>> typeReference = new TypeReference<List<Long>>() {
 		};
-		List<Long> errantSignupFixTaskIds = mapper.readerFor(typeReference).readValue(contentAsString);
+		List<Long> errantSignupFixTaskIds = mapper.readerFor(typeReference)
+				.readValue(contentAsString);
 		log.info("errant signups:  " + errantSignupFixTaskIds.toString());
 
 		// if necessary, fix them
-		errantSignupFixTaskIds.forEach(
-				taskId -> {
-					try {
-						customer.setEmail("valid@email.com");
-						this.mockMvc.perform(post(rootUrl + "/" + customerId + "/signup/errors/" + taskId)
-								.content(jsonForCustomer(customer))
-								.contentType(MediaType.APPLICATION_JSON))
-								.andExpect(status().isOk());
+		errantSignupFixTaskIds.forEach(taskId -> {
+			try {
+				customer.setEmail("valid@email.com");
+				this.mockMvc.perform(
+						post(
+								rootUrl + "/" + customerId + "/signup/errors/"
+										+ taskId).content(
+								jsonForCustomer(customer)).contentType(
+								MediaType.APPLICATION_JSON)).andExpect(
+						status().isOk());
 
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-				}
-		);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
 
 		// confirm receipt of email
-		this.mockMvc.perform(post(rootUrl + "/" + customerId + "/signup/confirmation"))
+		this.mockMvc.perform(
+				post(rootUrl + "/" + customerId + "/signup/confirmation"))
 				.andExpect(status().isOk());
 	}
 
@@ -132,12 +144,14 @@ public class SignupRestControllerTests {
 	public static class CheckFormBPP implements BeanPostProcessor {
 
 		@Override
-		public Object postProcessBeforeInitialization(Object o, String s) throws BeansException {
+		public Object postProcessBeforeInitialization(Object o, String s)
+				throws BeansException {
 			return o;
 		}
 
 		@Override
-		public Object postProcessAfterInitialization(Object o, String s) throws BeansException {
+		public Object postProcessAfterInitialization(Object o, String s)
+				throws BeansException {
 			if (o.getClass().isAssignableFrom(CheckForm.class)) {
 				return this.counting(CheckForm.class.cast(o));
 			}
@@ -159,7 +173,7 @@ public class SignupRestControllerTests {
 	}
 
 	private String jsonForCustomer(Customer customer) throws Exception {
-		return this.objectMapper.writerFor(Customer.class)
-				.writeValueAsString(customer);
+		return this.objectMapper.writerFor(Customer.class).writeValueAsString(
+				customer);
 	}
 }

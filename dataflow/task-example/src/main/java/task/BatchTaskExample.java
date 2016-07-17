@@ -13,35 +13,39 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
 
-@EnableTask // <1>
-@EnableBatchProcessing // <2>
+@EnableTask
+// <1>
+@EnableBatchProcessing
+// <2>
 @SpringBootApplication
 public class BatchTaskExample {
 
 	@Bean
 	Job hello(JobBuilderFactory jobBuilderFactory,
-	          StepBuilderFactory stepBuilderFactory) {
+			StepBuilderFactory stepBuilderFactory) {
 
-		//@formatter:off
+		// @formatter:off
 
 		Log log = LogFactory.getLog(getClass());
 
-		TaskletStep step = stepBuilderFactory.get("one")
-			.tasklet((stepContribution, chunkContext) -> { // <3>
-				log.info("Hello, world");
-				log.info("parameters: ");
-				chunkContext.getStepContext().getJobParameters()
-					.entrySet()
-					.forEach(e -> log.info(e.getKey() + ':' + e.getValue()));
-				return RepeatStatus.FINISHED;
-			}).build();
+		TaskletStep step = stepBuilderFactory
+				.get("one")
+				.tasklet((stepContribution, chunkContext) -> { // <3>
+							log.info("Hello, world");
+							log.info("parameters: ");
+							chunkContext
+									.getStepContext()
+									.getJobParameters()
+									.entrySet()
+									.forEach(
+											e -> log.info(e.getKey() + ':'
+													+ e.getValue()));
+							return RepeatStatus.FINISHED;
+						}).build();
 
-		return jobBuilderFactory
-				.get("hello")
-				.start(step)
-				.build();
+		return jobBuilderFactory.get("hello").start(step).build();
 
-		//@formatter:on
+		// @formatter:on
 	}
 
 	public static void main(String[] args) {

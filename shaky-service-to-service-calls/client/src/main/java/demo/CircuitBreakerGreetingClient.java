@@ -14,16 +14,14 @@ import java.util.Date;
 import java.util.Map;
 
 @Component
-public class CircuitBreakerGreetingClient
-		implements GreetingClient {
+public class CircuitBreakerGreetingClient implements GreetingClient {
 
 	private Log log = LogFactory.getLog(getClass());
 	private final RestTemplate restTemplate;
 	private final String serviceUri;
 
 	@Autowired
-	public CircuitBreakerGreetingClient(
-			RestTemplate restTemplate,
+	public CircuitBreakerGreetingClient(RestTemplate restTemplate,
 			@Value("${greeting-service.domain:127.0.0.1}") String domain,
 			@Value("${greeting-service.port:8080}") int port) {
 		this.restTemplate = restTemplate;
@@ -35,18 +33,14 @@ public class CircuitBreakerGreetingClient
 	public String greet(String name) {
 		long time = System.currentTimeMillis();
 		Date now = new Date(time);
-		this.log.info("attempting to call " +
-				"the greeting-service " + time + "/" + now.toString());
+		this.log.info("attempting to call " + "the greeting-service " + time
+				+ "/" + now.toString());
 
-		ParameterizedTypeReference<Map<String, String>> ptr =
-				new ParameterizedTypeReference<Map<String, String>>() { };
+		ParameterizedTypeReference<Map<String, String>> ptr = new ParameterizedTypeReference<Map<String, String>>() {
+		};
 
-		return this.restTemplate.exchange(
-				this.serviceUri,
-				HttpMethod.GET,
-				null,
-				ptr,
-				name)
+		return this.restTemplate
+				.exchange(this.serviceUri, HttpMethod.GET, null, ptr, name)
 				.getBody().get("greeting");
 	}
 

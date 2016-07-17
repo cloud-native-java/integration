@@ -20,8 +20,7 @@ class EmailValidationService {
 	private final String uri;
 
 	@Autowired
-	public EmailValidationService(
-			@Value("${mashape.key}") String key,
+	public EmailValidationService(@Value("${mashape.key}") String key,
 			@Value("${emailvalidator.uri}") String uri,
 			RestTemplate restTemplate) {
 		this.mashapeKey = key;
@@ -32,14 +31,13 @@ class EmailValidationService {
 	public boolean isEmailValid(String email) {
 		UriComponents emailValidatedUri = UriComponentsBuilder.fromHttpUrl(uri)
 				.buildAndExpand(email);
-		RequestEntity<Void> requestEntity = RequestEntity.get(emailValidatedUri.toUri())
-				.header("X-Mashape-Key", mashapeKey)
-				.build();
-		ParameterizedTypeReference<Map<String, Boolean>> ptr =
-				new ParameterizedTypeReference<Map<String, Boolean>>() {
-				};
-		ResponseEntity<Map<String, Boolean>> responseEntity =
-				restTemplate.exchange(requestEntity, ptr);
+		RequestEntity<Void> requestEntity = RequestEntity
+				.get(emailValidatedUri.toUri())
+				.header("X-Mashape-Key", mashapeKey).build();
+		ParameterizedTypeReference<Map<String, Boolean>> ptr = new ParameterizedTypeReference<Map<String, Boolean>>() {
+		};
+		ResponseEntity<Map<String, Boolean>> responseEntity = restTemplate
+				.exchange(requestEntity, ptr);
 		return responseEntity.getBody().get("isValid");
 	}
 }

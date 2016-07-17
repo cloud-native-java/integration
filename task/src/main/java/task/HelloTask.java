@@ -10,7 +10,8 @@ import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.PageRequest;
 
-@EnableTask // <1>
+@EnableTask
+// <1>
 @SpringBootApplication
 public class HelloTask {
 
@@ -19,8 +20,8 @@ public class HelloTask {
 	@Bean
 	CommandLineRunner runAndExplore(TaskExplorer taskExplorer) {
 		return args -> // <2>
-				taskExplorer.findAll(new PageRequest(0, 1))
-						.forEach(taskExecution -> log.info(taskExecution.toString()));
+		taskExplorer.findAll(new PageRequest(0, 1)).forEach(
+				taskExecution -> log.info(taskExecution.toString()));
 	}
 
 	public static void main(String args[]) {
