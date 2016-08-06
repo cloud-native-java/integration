@@ -12,168 +12,173 @@ import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@WebAppConfiguration
-@SpringApplicationConfiguration(classes = DemoApplication.class)
+@RunWith(SpringRunner.class)
+@AutoConfigureMockMvc
+@SpringBootTest(classes = DemoApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class SignupRestControllerTests {
 
-	private static final AtomicInteger counter = new AtomicInteger();
+    private static final AtomicInteger counter = new AtomicInteger();
 
-	private MockMvc mockMvc;
+    private String validEmail = "dsyer@email.com";
+    private String invalidEmail = "pwebb";
 
-	private ObjectMapper objectMapper = new ObjectMapper();
+    @MockBean
+    private EmailValidationService emailValidationService;
 
-	@Autowired
-	private WebApplicationContext wac;
+    @Autowired
+    private MockMvc mockMvc;
 
-	@Before
-	public void before() throws Exception {
-		this.repository.deleteAll();
-		counter.set(0);
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-	}
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	@Autowired
-	private CustomerRepository repository;
+    @Before
+    public void before() throws Exception {
+        this.repository.deleteAll();
+        counter.set(0);
 
-	private static Log log = LogFactory.getLog(SignupRestController.class);
+        given(this.emailValidationService.isEmailValid(invalidEmail)).willReturn(false);
+        given(this.emailValidationService.isEmailValid(validEmail)).willReturn(true);
+    }
 
-	protected void doTestSignup(Customer input) throws Exception {
-		// customers/{customerId}/signup
-		// first let's start the signup process
+    @Autowired
+    private CustomerRepository repository;
 
-		String email = input.getEmail();
+    private static Log log = LogFactory.getLog(SignupRestController.class);
 
-		String drJson = jsonForCustomer(input);
+    protected void doTestSignup(Customer input) throws Exception {
 
-		String rootUrl = "/customers"; // + customerId
-										// +
-										// "/signup";
+        String email = input.getEmail();
 
-		// start signup
-		this.mockMvc
-				.perform(
-						post(rootUrl).content(drJson).contentType(
-								MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andExpect(
-						mvcResult -> {
-							String contentAsString = mvcResult.getResponse()
-									.getContentAsString();
-							Long customerId = Long.parseLong(contentAsString);
-							assertNotNull(customerId);
-							assertTrue(customerId > 0);
-						});
+        String inputJson = jsonForCustomer(input);
 
-		Customer customer = this.repository.findByEmail(email).orElseThrow(
-				() -> new AssertionError(
-						"no record stored in the database for email '" + email
-								+ "'"));
+        String rootUrl = "/customers";
 
-		String customerId = Long.toString(customer.getId());
+        // start signup
+        this.mockMvc
+                .perform(
+                        post(rootUrl).content(inputJson).contentType(
+                                MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(
+                        mvcResult -> {
+                            String contentAsString = mvcResult.getResponse()
+                                    .getContentAsString();
+                            Long customerId = Long.parseLong(contentAsString);
+                            assertNotNull(customerId);
+                            assertTrue(customerId > 0);
+                        });
 
-		// see if there are any errors to be corrected
-		String contentAsString = this.mockMvc
-				.perform(get(rootUrl + "/" + customerId + "/signup/errors"))
-				.andExpect(status().isOk()).andReturn().getResponse()
-				.getContentAsString();
-		ObjectMapper mapper = new ObjectMapper();
-		TypeReference<List<Long>> typeReference = new TypeReference<List<Long>>() {
-		};
-		List<Long> errantSignupFixTaskIds = mapper.readerFor(typeReference)
-				.readValue(contentAsString);
-		log.info("errant signups:  " + errantSignupFixTaskIds.toString());
+        Customer customer = this.repository.findByEmail(email).orElseThrow(
+                () -> new AssertionError(
+                        "no record stored in the database for email '" + email
+                                + "'"));
 
-		// if necessary, fix them
-		errantSignupFixTaskIds.forEach(taskId -> {
-			try {
-				customer.setEmail("valid@email.com");
-				this.mockMvc.perform(
-						post(
-								rootUrl + "/" + customerId + "/signup/errors/"
-										+ taskId).content(
-								jsonForCustomer(customer)).contentType(
-								MediaType.APPLICATION_JSON)).andExpect(
-						status().isOk());
+        String customerId = Long.toString(customer.getId());
 
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		});
+        // see if there are any errors to be corrected
+        String contentAsString = this.mockMvc
+                .perform(get(rootUrl + "/" + customerId + "/signup/errors"))
+                .andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        TypeReference<List<Long>> typeReference = new TypeReference<List<Long>>() {
+        };
+        List<Long> errantSignupFixTaskIds = mapper.readerFor(typeReference)
+                .readValue(contentAsString);
+        log.info("errant signups:  " + errantSignupFixTaskIds.toString());
 
-		// confirm receipt of email
-		this.mockMvc.perform(
-				post(rootUrl + "/" + customerId + "/signup/confirmation"))
-				.andExpect(status().isOk());
-	}
+        // if necessary, fix them
+        errantSignupFixTaskIds.forEach(taskId -> {
+            try {
+                customer.setEmail("valid@email.com");
+                this.mockMvc.perform(
+                        post(rootUrl + "/" + customerId + "/signup/errors/" + taskId)
+                                .content(jsonForCustomer(customer))
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk());
 
-	@Test
-	public void signupFlowHappyPath() throws Exception {
-		this.doTestSignup(new Customer("Dave", "Syer", "dsyer@email.com"));
-		int i = counter.get();
-		assertEquals(i, 1);
-		log.info("signupFlowHappyPath: " + i);
-	}
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
-	@Test
-	public void signupFlowSadPath() throws Exception {
-		this.doTestSignup(new Customer("Phil", "Webb", "pwebb"));
-		int i = counter.get();
-		assertEquals(i, 2);
-		log.info("signupFlowSadPath: " + i);
-	}
+        // confirm receipt of email
+        this.mockMvc.perform(
+                post(rootUrl + "/" + customerId + "/signup/confirmation"))
+                .andExpect(status().isOk());
+    }
 
-	@Component
-	public static class CheckFormBPP implements BeanPostProcessor {
+    @Test
+    public void signupFlowHappyPath() throws Exception {
 
-		@Override
-		public Object postProcessBeforeInitialization(Object o, String s)
-				throws BeansException {
-			return o;
-		}
+        this.doTestSignup(new Customer("Dave", "Syer", validEmail));
+        int i = counter.get();
+        assertEquals(i, 1);
+        log.info("signupFlowHappyPath: " + i);
+    }
 
-		@Override
-		public Object postProcessAfterInitialization(Object o, String s)
-				throws BeansException {
-			if (o.getClass().isAssignableFrom(CheckForm.class)) {
-				return this.counting(CheckForm.class.cast(o));
-			}
-			return o;
-		}
+    @Test
+    public void signupFlowSadPath() throws Exception {
 
-		private Object counting(CheckForm cf) {
-			log.info("creating a counting proxy for " + cf.getClass());
-			ProxyFactoryBean pfb = new ProxyFactoryBean();
-			pfb.addAdvice((MethodInterceptor) invocation -> {
-				if (invocation.getMethod().getName().equals("execute")) {
-					counter.incrementAndGet();
-				}
-				return invocation.proceed();
-			});
-			pfb.setTarget(cf);
-			return pfb.getObject();
-		}
-	}
+        this.doTestSignup(new Customer("Phil", "Webb", invalidEmail));
+        int i = counter.get();
+        assertEquals(i, 2);
+        log.info("signupFlowSadPath: " + i);
+    }
 
-	private String jsonForCustomer(Customer customer) throws Exception {
-		return this.objectMapper.writerFor(Customer.class).writeValueAsString(
-				customer);
-	}
+    @Component
+    public static class CheckFormBPP implements BeanPostProcessor {
+
+        @Override
+        public Object postProcessBeforeInitialization(Object o, String s)
+                throws BeansException {
+            return o;
+        }
+
+        @Override
+        public Object postProcessAfterInitialization(Object o, String s)
+                throws BeansException {
+            if (o.getClass().isAssignableFrom(CheckForm.class)) {
+                return this.counting(CheckForm.class.cast(o));
+            }
+            return o;
+        }
+
+        private Object counting(CheckForm cf) {
+            log.info("creating a counting proxy for " + cf.getClass());
+            ProxyFactoryBean pfb = new ProxyFactoryBean();
+            pfb.addAdvice((MethodInterceptor) invocation -> {
+                if (invocation.getMethod().getName().equals("execute")) {
+                    counter.incrementAndGet();
+                }
+                return invocation.proceed();
+            });
+            pfb.setTarget(cf);
+            return pfb.getObject();
+        }
+    }
+
+    private String jsonForCustomer(Customer customer) throws Exception {
+        return this.objectMapper.writerFor(Customer.class).writeValueAsString(
+                customer);
+    }
 }

@@ -12,10 +12,9 @@
     </parent>
     <name>integration/shaky-service-to-service-calls</name>
     <artifactId>shaky-service-to-service-calls</artifactId>
-
     <packaging>pom</packaging>
     <modules>
-        <module>client</module>
-        <module>service</module>
+        <module>shaky-service</module>
+        <module>shaky-client</module>
     </modules>
 </project>
