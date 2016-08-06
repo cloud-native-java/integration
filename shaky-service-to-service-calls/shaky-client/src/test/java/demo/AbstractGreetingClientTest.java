@@ -57,8 +57,6 @@ public abstract class AbstractGreetingClientTest<T extends GreetingClient> {
 		assertEquals(greet, expected);
 	}
 
-	Class<?> clazz = service.GreetingApplication.class ;
-
 	@Configuration
 	@Import(service.GreetingApplication.class)
 	public static class ApplicationListenerConfig {
