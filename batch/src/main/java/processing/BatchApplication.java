@@ -30,17 +30,25 @@ public class BatchApplication {
 		return new JdbcTemplate(dataSource);
 	}
 
+	// <1>
 	@Bean
-	CommandLineRunner job(JobLauncher jobLauncher, @Qualifier("etl") Job job, @Value("${user.home}") String home) {
+	CommandLineRunner job(
+			JobLauncher launcher,
+			@Qualifier("etl") Job job,
+			@Value("${user.home}") String home) {
 		return args ->
-				jobLauncher.run(job,
-						new JobParametersBuilder()
-								.addString("input", new File(home, "in.csv").getAbsolutePath())
-								.addString("output", new File(home, "out.csv").getAbsolutePath())
-								.toJobParameters());
+				launcher.run(job,
+					new JobParametersBuilder()
+						.addString("input", path(home, "in.csv"))
+						.addString("output", path(home, "out.csv"))
+						.toJobParameters());
 	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(BatchApplication.class, args);
+	}
+
+	private String path(String home, String fileName) {
+		return new File(home, fileName).getAbsolutePath();
 	}
 }

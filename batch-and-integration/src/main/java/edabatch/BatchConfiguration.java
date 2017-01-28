@@ -1,5 +1,6 @@
 package edabatch;
 
+import edabatch.email.EmailValidationService;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -52,7 +53,8 @@ public class BatchConfiguration {
 				.tasklet((contribution, chunkContext) -> {
 					template.update("delete from CONTACT");
 					return RepeatStatus.FINISHED;
-				}).build();
+				})
+				.build();
 
 		Step fileToJdbc = stepBuilderFactory
 				.get("file-to-jdbc-fileToJdbc")
