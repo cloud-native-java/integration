@@ -36,6 +36,7 @@ import java.util.Map;
 
 @Configuration
 public class PartitionConfiguration {
+	public static final String LEADER_PROFILE = "!worker";
 
 	public static final String STEP_1 = "step1";
 
@@ -50,9 +51,9 @@ public class PartitionConfiguration {
 	private int gridSize;
 
 	@Bean
-	MessagingTemplate messagingTemplate(PartitionChannels master) {
+	MessagingTemplate messagingTemplate(PartitionLeaderChannels channels) {
 		MessagingTemplate messagingTemplate = new MessagingTemplate(
-				master.masterRequests());
+				channels.masterRequestsChannel());
 		messagingTemplate.setReceiveTimeout(60 * 1000 * 60);
 		return messagingTemplate;
 	}
@@ -63,7 +64,9 @@ public class PartitionConfiguration {
 		@Autowired
 		private MessageChannelPartitionHandler partitionHandler;
 
-		@Aggregator(inputChannel = PartitionChannels.Partition.MASTER_REPLIES, outputChannel = PartitionChannels.Partition.MASTER_REPLIES_AGGREGATED, sendTimeout = "3600000", sendPartialResultsOnExpiry = "true")
+		@Aggregator(inputChannel = PartitionLeaderChannels.PartitionLeader.MASTER_REPLIES,
+				outputChannel = PartitionLeaderChannels.PartitionLeader.MASTER_REPLIES_AGGREGATED,
+				sendTimeout = "3600000", sendPartialResultsOnExpiry = "true")
 		public List<?> aggregate(@Payloads List<?> messages) {
 			return this.partitionHandler.aggregate(messages);
 		}
@@ -71,59 +74,59 @@ public class PartitionConfiguration {
 
 	@Bean
 	MessageChannelPartitionHandler partitionHandler(
-			MessagingTemplate messagingTemplate, JobExplorer jobExplorer,
-			PartitionChannels master) throws Exception {
+			MessagingTemplate messagingTemplate,
+			JobExplorer jobExplorer,
+			PartitionLeaderChannels master) throws Exception {
 		MessageChannelPartitionHandler partitionHandler = new MessageChannelPartitionHandler();
-		partitionHandler.setReplyChannel(master.masterRequestsAggregated());
+		partitionHandler.setReplyChannel(master.masterRequestsAggregatedChannel());
 		partitionHandler.setMessagingOperations(messagingTemplate);
 		partitionHandler.setJobExplorer(jobExplorer);
 		partitionHandler.setStepName(WORKER_STEP);
-		partitionHandler.setPollInterval(5000L);
+		partitionHandler.setPollInterval(5_000L);
 		partitionHandler.setGridSize(this.gridSize);
 		return partitionHandler;
 	}
 
 	@Bean
 	@StepScope
-	JdbcPagingItemReader<Customer> pagingItemReader(DataSource dataSource,
-			@Value("#{stepExecutionContext['minValue']}") Long minValue,
-			@Value("#{stepExecutionContext['maxValue']}") Long maxValue) {
+	JdbcPagingItemReader<Person> reader(DataSource dataSource,
+	                                    @Value("#{stepExecutionContext['minValue']}") Long minValue,
+	                                    @Value("#{stepExecutionContext['maxValue']}") Long maxValue) {
 
 		log.info("reading " + minValue + " to " + maxValue);
 
 		MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
-		queryProvider.setSelectClause("id, firstName, lastName, birthdate");
-		queryProvider.setFromClause("from CUSTOMER");
-		queryProvider.setWhereClause("where id >= " + minValue + " and id <= "
-				+ maxValue);
-		queryProvider.setSortKeys(Collections.singletonMap("id",
-				Order.ASCENDING));
+		queryProvider.setSelectClause("id as id, email as email, age as age, first_name as firstName");
+		queryProvider.setFromClause("from PEOPLE");
+		queryProvider.setWhereClause("where id >= " + minValue + " and id <= " + maxValue);
+		queryProvider.setSortKeys(Collections.singletonMap("id", Order.ASCENDING));
 
-		JdbcPagingItemReader<Customer> reader = new JdbcPagingItemReader<>();
+		JdbcPagingItemReader<Person> reader = new JdbcPagingItemReader<>();
 		reader.setDataSource(dataSource);
 		reader.setFetchSize(this.chunk);
 		reader.setQueryProvider(queryProvider);
-		reader.setRowMapper((rs, i) -> new Customer(rs.getLong("id"), rs
-				.getString("firstName"), rs.getString("lastName"), rs
-				.getDate("birthdate")));
+		reader.setRowMapper((rs, i) -> new Person(
+				rs.getInt("id"),
+				rs.getInt("age"),
+				rs.getString("firstName"),
+				rs.getString("email")));
 		return reader;
 	}
 
 	@Bean
 	@StepScope
-	JdbcBatchItemWriter<Customer> customerItemWriter(DataSource dataSource) {
-		JdbcBatchItemWriter<Customer> writer = new JdbcBatchItemWriter<>();
+	JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
+		JdbcBatchItemWriter<Person> writer = new JdbcBatchItemWriter<>();
 		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-		writer.setSql("INSERT INTO NEW_CUSTOMER VALUES "
-				+ " (:id, :firstName, :lastName, :birthdate)");
+		writer.setSql("INSERT INTO NEW_PEOPLE(id,age,first_name,email) VALUES(:id, :age, :firstName, :email )");
 		writer.setDataSource(dataSource);
 		return writer;
 	}
 
 	@Bean
-	Partitioner columnRangePartitioner(JdbcOperations jdbcTemplate,
-			@Value("${partition.table:CUSTOMER}") String table,
-			@Value("${partition.column:ID}") String column) {
+	Partitioner partitioner(JdbcOperations jdbcTemplate,
+	                        @Value("${partition.table:PEOPLE}") String table,
+	                        @Value("${partition.column:ID}") String column) {
 		return gridSize -> {
 
 			Map<String, ExecutionContext> result = new HashMap<>();
@@ -155,20 +158,25 @@ public class PartitionConfiguration {
 	}
 
 	@Bean(name = STEP_1)
-	Step step1(StepBuilderFactory stepBuilderFactory, Partitioner partitioner,
-			PartitionHandler partitionHandler, @Qualifier(WORKER_STEP) Step step)
-			throws Exception {
+	Step step1(StepBuilderFactory stepBuilderFactory,
+	           Partitioner partitioner,
+	           PartitionHandler partitionHandler,
+	           @Qualifier(WORKER_STEP) Step worker) throws Exception {
 		return stepBuilderFactory.get(STEP_1)
-				.partitioner(step.getName(), partitioner).step(step)
-				.partitionHandler(partitionHandler).build();
+				.partitioner(worker.getName(), partitioner)
+				.step(worker)
+				.partitionHandler(partitionHandler)
+				.build();
 	}
 
 	@Bean(name = WORKER_STEP)
 	Step workerStep(StepBuilderFactory stepBuilderFactory) {
-		return stepBuilderFactory.get(WORKER_STEP)
-				.<Customer, Customer> chunk(this.chunk)
-				.reader(pagingItemReader(null, null, null))
-				.writer(customerItemWriter(null)).build();
+		return stepBuilderFactory
+				.get(WORKER_STEP)
+				.<Person, Person>chunk(this.chunk)
+				.reader(reader(null, null, null))
+				.writer(writer(null))
+				.build();
 	}
 
 	@Bean(name = PollerMetadata.DEFAULT_POLLER)

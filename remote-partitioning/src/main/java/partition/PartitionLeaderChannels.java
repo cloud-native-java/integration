@@ -6,39 +6,43 @@ import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.messaging.MessageChannel;
 
 @Configuration
-@EnableBinding(PartitionChannels.Partition.class)
-class PartitionChannels {
+@EnableBinding(PartitionLeaderChannels.PartitionLeader.class)
+class PartitionLeaderChannels {
+
+	private final PartitionLeader partitionLeader;
 
 	@Autowired
-	private Partition partition;
+	public PartitionLeaderChannels(PartitionLeader partitionLeader) {
+		this.partitionLeader = partitionLeader;
+	}
 
-	@Bean(name = Partition.MASTER_REPLIES_AGGREGATED)
-	QueueChannel masterRequestsAggregated() {
+	@Bean(name = PartitionLeader.MASTER_REPLIES_AGGREGATED)
+	public QueueChannel masterRequestsAggregatedChannel() {
 		return MessageChannels.queue().get();
 	}
 
-	DirectChannel masterRequests() {
-		return partition.masterRequests();
+	public MessageChannel masterRequestsChannel() {
+		return partitionLeader.masterRequests();
 	}
 
-	DirectChannel masterReplies() {
-		return partition.masterReplies();
+	public MessageChannel masterRepliesChannel() {
+		return partitionLeader.masterReplies();
 	}
 
-	public interface Partition {
+	public interface PartitionLeader {
 		String MASTER_REPLIES = "masterReplies";
 		String MASTER_REQUESTS = "masterRequests";
 		String MASTER_REPLIES_AGGREGATED = "masterRepliesAggregated";
 
 		@Output(MASTER_REQUESTS)
-		DirectChannel masterRequests();
+		MessageChannel masterRequests();
 
 		@Input(MASTER_REPLIES)
-		DirectChannel masterReplies();
+		MessageChannel masterReplies();
 	}
 }

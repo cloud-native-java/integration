@@ -29,7 +29,7 @@ class BatchConfiguration {
 				.build();
 
 		Step s2 = sbf.get("file-db")
-				.<Person, Person>chunk(10) // <4>
+				.<Person, Person>chunk(1000) // <4>
 				.faultTolerant()  // <5>
 				.skip(InvalidEmailException.class)
 				.retry(HttpStatusCodeException.class)

@@ -6,7 +6,7 @@ import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.messaging.MessageChannel;
 
 @Configuration
 @EnableBinding(PartitionWorkerChannels.PartitionWorker.class)
@@ -16,11 +16,11 @@ class PartitionWorkerChannels {
 	@Autowired
 	private PartitionWorker channels;
 
-	DirectChannel workerRequests() {
+	MessageChannel workerRequests() {
 		return channels.workerRequests();
 	}
 
-	DirectChannel workerReplies() {
+	MessageChannel workerReplies() {
 		return channels.workerReplies();
 	}
 
@@ -31,10 +31,10 @@ class PartitionWorkerChannels {
 		String WORKER_REPLIES = "workerReplies";
 
 		@Input(WORKER_REQUESTS)
-		DirectChannel workerRequests();
+		MessageChannel workerRequests();
 
 		@Output(WORKER_REPLIES)
-		DirectChannel workerReplies();
+		MessageChannel workerReplies();
 
 	}
 }
