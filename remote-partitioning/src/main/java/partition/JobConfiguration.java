@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Date;
 
 @Configuration
-@Profile(PartitionConfiguration.LEADER_PROFILE)
+@Profile(Profiles.LEADER_PROFILE)
 class JobConfiguration {
 
 	@Bean

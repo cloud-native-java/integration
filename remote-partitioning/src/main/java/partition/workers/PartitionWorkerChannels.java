@@ -7,10 +7,11 @@ import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.MessageChannel;
+import partition.Profiles;
 
 @Configuration
 @EnableBinding(PartitionWorkerChannels.PartitionWorker.class)
-@Profile(PartitionWorkerConfiguration.WORKER_PROFILE)
+@Profile( Profiles.WORKER_PROFILE)
 class PartitionWorkerChannels {
 
 	@Autowired

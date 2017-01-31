@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import static org.springframework.batch.core.ExitStatus.COMPLETED;
 
 @RestController
-@Profile(PartitionConfiguration.LEADER_PROFILE)
+@Profile(Profiles.LEADER_PROFILE)
 public class JobLauncherRestController {
 
 	private final Job job;

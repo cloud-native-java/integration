@@ -12,17 +12,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
+import partition.Profiles;
 
 import static partition.workers.PartitionWorkerChannels.PartitionWorker.WORKER_REPLIES;
 import static partition.workers.PartitionWorkerChannels.PartitionWorker.WORKER_REQUESTS;
 
-import static partition.workers.PartitionWorkerConfiguration.*;
-
 @Configuration
-@Profile(WORKER_PROFILE)
+@Profile(Profiles.WORKER_PROFILE)
 class PartitionWorkerConfiguration {
-
-	public static final String WORKER_PROFILE = "worker";
 
 	@Bean
 	StepLocator stepLocator() {
@@ -39,7 +36,7 @@ class PartitionWorkerConfiguration {
 	}
 
 	@MessageEndpoint
-	@Profile(WORKER_PROFILE)
+	@Profile(Profiles.WORKER_PROFILE)
 	public static class StepExecutionRequestHandlerDelegator {
 
 		@Autowired
@@ -50,5 +47,4 @@ class PartitionWorkerConfiguration {
 			return this.handler.handle(request);
 		}
 	}
-
 }
