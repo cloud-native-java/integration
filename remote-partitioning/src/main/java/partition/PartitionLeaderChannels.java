@@ -2,7 +2,6 @@ package partition;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +25,7 @@ class PartitionLeaderChannels {
 	}
 
 	@Bean(name = PartitionLeaderChannels.LEADER_REPLIES_AGGREGATED)
-	public QueueChannel leaderRequestsAggregatedChannel() {
+	public QueueChannel leaderRepliesAggregatedChannel() {
 		return MessageChannels.queue().get();
 	}
 
@@ -34,16 +33,16 @@ class PartitionLeaderChannels {
 		return partitionLeader.leaderRequests();
 	}
 
-	public MessageChannel leaderRepliesChannel() {
+/*	public SubscribableChannel leaderRepliesChannel() {
 		return partitionLeader.leaderReplies();
-	}
+	}*/
 
 	public interface PartitionLeader {
 
 		@Output(PartitionLeaderChannels.LEADER_REQUESTS)
 		MessageChannel leaderRequests();
 
-		@Input(PartitionLeaderChannels.LEADER_REPLIES)
-		MessageChannel leaderReplies();
+	/*	@Input(PartitionLeaderChannels.LEADER_REPLIES)
+		SubscribableChannel leaderReplies();*/
 	}
 }

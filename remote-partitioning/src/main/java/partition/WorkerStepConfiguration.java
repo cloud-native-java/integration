@@ -56,7 +56,7 @@ class WorkerStepConfiguration {
 	JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
 		return new JdbcBatchItemWriterBuilder<Person>()
 				.beanMapped()
-				.sql("INSERT INTO NEW_PEOPLE(id,age,first_name,email) VALUES(:id, :age, :firstName, :email )")
+				.sql("INSERT INTO NEW_PEOPLE(age,first_name,email) VALUES(:age, :firstName, :email )")
 				.dataSource(dataSource)
 				.build();
 	}

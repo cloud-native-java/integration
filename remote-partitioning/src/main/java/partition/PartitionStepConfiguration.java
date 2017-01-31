@@ -7,18 +7,13 @@ import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.integration.partition.MessageChannelPartitionHandler;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.jdbc.core.JdbcOperations;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -38,14 +33,11 @@ class PartitionStepConfiguration {
 	@Bean
 	MessageChannelPartitionHandler partitionHandler(
 			MessagingTemplate messagingTemplate,
-			JobExplorer jobExplorer,
-			PartitionLeaderChannels master) throws Exception {
+			JobExplorer jobExplorer) throws Exception {
 		MessageChannelPartitionHandler partitionHandler = new MessageChannelPartitionHandler();
-		partitionHandler.setReplyChannel(master.leaderRequestsAggregatedChannel());
 		partitionHandler.setMessagingOperations(messagingTemplate);
 		partitionHandler.setJobExplorer(jobExplorer);
 		partitionHandler.setStepName("workerStep");
-		partitionHandler.setPollInterval(5_000L);
 		partitionHandler.setGridSize(this.gridSize);
 		return partitionHandler;
 	}
@@ -95,19 +87,5 @@ class PartitionStepConfiguration {
 				.step(step)
 				.partitionHandler(partitionHandler)
 				.build();
-	}
-
-	@MessageEndpoint
-	public static class ReplyAggregatingMessageEndpoint {
-
-		@Autowired
-		private MessageChannelPartitionHandler partitionHandler;
-
-		@Aggregator(inputChannel = PartitionLeaderChannels.LEADER_REPLIES,
-				outputChannel = PartitionLeaderChannels.LEADER_REPLIES_AGGREGATED,
-				sendTimeout = "3600000", sendPartialResultsOnExpiry = "true")
-		public List<?> aggregate(@Payloads List<?> messages) {
-			return this.partitionHandler.aggregate(messages);
-		}
 	}
 }
