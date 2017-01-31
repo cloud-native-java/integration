@@ -20,12 +20,12 @@ import static org.springframework.batch.core.ExitStatus.COMPLETED;
 
 @RestController
 @Profile(PartitionConfiguration.LEADER_PROFILE)
-public class PersonBatchRestController {
+public class JobLauncherRestController {
 
 	private final Job job;
 	private final JobLauncher jobLauncher;
 
-	public PersonBatchRestController(JobConfiguration job, JobLauncher jobLauncher)
+	public JobLauncherRestController(JobConfiguration job, JobLauncher jobLauncher)
 			throws Exception {
 		this.job = job.job(null, null, null, null);
 		this.jobLauncher = jobLauncher;
@@ -45,13 +45,13 @@ public class PersonBatchRestController {
 				return ResponseEntity.ok(COMPLETED);
 			}
 			return ResponseEntity
-					.badRequest( )
+					.badRequest()
 					.body(execution
 							.getAllFailureExceptions()
 							.stream().map(Object::toString)
-							.collect(Collectors.joining(", ")))
-					 ;
-		} finally {
+							.collect(Collectors.joining(", ")));
+		}
+		finally {
 			stopWatch.stop();
 			LogFactory.getLog(getClass()).info(stopWatch.prettyPrint());
 		}

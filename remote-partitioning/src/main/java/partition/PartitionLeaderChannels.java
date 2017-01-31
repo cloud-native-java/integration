@@ -14,6 +14,10 @@ import org.springframework.messaging.MessageChannel;
 @EnableBinding(PartitionLeaderChannels.PartitionLeader.class)
 class PartitionLeaderChannels {
 
+	public static final String LEADER_REPLIES = "leaderReplies";
+	public static final String LEADER_REQUESTS = "leaderRequests";
+	public static final String LEADER_REPLIES_AGGREGATED = "leaderRepliesAggregated";
+
 	private final PartitionLeader partitionLeader;
 
 	@Autowired
@@ -21,28 +25,25 @@ class PartitionLeaderChannels {
 		this.partitionLeader = partitionLeader;
 	}
 
-	@Bean(name = PartitionLeader.MASTER_REPLIES_AGGREGATED)
-	public QueueChannel masterRequestsAggregatedChannel() {
+	@Bean(name = PartitionLeaderChannels.LEADER_REPLIES_AGGREGATED)
+	public QueueChannel leaderRequestsAggregatedChannel() {
 		return MessageChannels.queue().get();
 	}
 
-	public MessageChannel masterRequestsChannel() {
-		return partitionLeader.masterRequests();
+	public MessageChannel leaderRequestsChannel() {
+		return partitionLeader.leaderRequests();
 	}
 
-	public MessageChannel masterRepliesChannel() {
-		return partitionLeader.masterReplies();
+	public MessageChannel leaderRepliesChannel() {
+		return partitionLeader.leaderReplies();
 	}
 
 	public interface PartitionLeader {
-		String MASTER_REPLIES = "masterReplies";
-		String MASTER_REQUESTS = "masterRequests";
-		String MASTER_REPLIES_AGGREGATED = "masterRepliesAggregated";
 
-		@Output(MASTER_REQUESTS)
-		MessageChannel masterRequests();
+		@Output(PartitionLeaderChannels.LEADER_REQUESTS)
+		MessageChannel leaderRequests();
 
-		@Input(MASTER_REPLIES)
-		MessageChannel masterReplies();
+		@Input(PartitionLeaderChannels.LEADER_REPLIES)
+		MessageChannel leaderReplies();
 	}
 }
