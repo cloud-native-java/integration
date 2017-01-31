@@ -16,7 +16,7 @@ import java.util.Date;
 
 @RestController
 @Profile(Profiles.LEADER_PROFILE)
-public class JobLauncherRestController {
+class JobLauncherRestController {
 
 	private final Job job;
 	private final JobLauncher jobLauncher;
@@ -26,7 +26,7 @@ public class JobLauncherRestController {
 			JobConfiguration jobConfiguration,
 			JobLauncher jobLauncher) throws Exception {
 		this.jobLauncher = jobLauncher;
-		this.job = jobConfiguration.job(null, null, null, null);
+		this.job = jobConfiguration.job(null, null);
 	}
 
 	@RequestMapping(value = "/migrate",

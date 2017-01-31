@@ -1,4 +1,4 @@
-package partition.workers;
+package partition;
 
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
@@ -12,10 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import partition.Profiles;
-
-import static partition.workers.PartitionWorkerChannels.PartitionWorker.WORKER_REPLIES;
-import static partition.workers.PartitionWorkerChannels.PartitionWorker.WORKER_REQUESTS;
 
 @Configuration
 @Profile(Profiles.WORKER_PROFILE)
@@ -46,8 +42,8 @@ class PartitionWorkerConfiguration {
 			this.handler = handler;
 		}
 
-		@ServiceActivator(inputChannel = WORKER_REQUESTS,
-				outputChannel = WORKER_REPLIES)
+		@ServiceActivator(inputChannel = PartitionWorkerChannels.PartitionWorker.WORKER_REQUESTS,
+				outputChannel = PartitionWorkerChannels.PartitionWorker.WORKER_REPLIES)
 		public StepExecution handle(StepExecutionRequest request) {
 			return this.handler.handle(request);
 		}
