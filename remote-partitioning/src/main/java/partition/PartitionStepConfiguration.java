@@ -35,20 +35,6 @@ class PartitionStepConfiguration {
 		return messagingTemplate;
 	}
 
-	@MessageEndpoint
-	public static class ReplyAggregatingMessageEndpoint {
-
-		@Autowired
-		private MessageChannelPartitionHandler partitionHandler;
-
-		@Aggregator(inputChannel = PartitionLeaderChannels.LEADER_REPLIES,
-				outputChannel = PartitionLeaderChannels.LEADER_REPLIES_AGGREGATED,
-				sendTimeout = "3600000", sendPartialResultsOnExpiry = "true")
-		public List<?> aggregate(@Payloads List<?> messages) {
-			return this.partitionHandler.aggregate(messages);
-		}
-	}
-
 	@Bean
 	MessageChannelPartitionHandler partitionHandler(
 			MessagingTemplate messagingTemplate,
@@ -98,7 +84,6 @@ class PartitionStepConfiguration {
 		};
 	}
 
-
 	@Bean
 	Step partitionStep(StepBuilderFactory sbf,
 	                   Partitioner partitioner,
@@ -110,5 +95,19 @@ class PartitionStepConfiguration {
 				.step(step)
 				.partitionHandler(partitionHandler)
 				.build();
+	}
+
+	@MessageEndpoint
+	public static class ReplyAggregatingMessageEndpoint {
+
+		@Autowired
+		private MessageChannelPartitionHandler partitionHandler;
+
+		@Aggregator(inputChannel = PartitionLeaderChannels.LEADER_REPLIES,
+				outputChannel = PartitionLeaderChannels.LEADER_REPLIES_AGGREGATED,
+				sendTimeout = "3600000", sendPartialResultsOnExpiry = "true")
+		public List<?> aggregate(@Payloads List<?> messages) {
+			return this.partitionHandler.aggregate(messages);
+		}
 	}
 }

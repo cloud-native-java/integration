@@ -11,11 +11,15 @@ import partition.Profiles;
 
 @Configuration
 @EnableBinding(PartitionWorkerChannels.PartitionWorker.class)
-@Profile( Profiles.WORKER_PROFILE)
+@Profile(Profiles.WORKER_PROFILE)
 class PartitionWorkerChannels {
 
+	private final PartitionWorker channels;
+
 	@Autowired
-	private PartitionWorker channels;
+	public PartitionWorkerChannels(PartitionWorker channels) {
+		this.channels = channels;
+	}
 
 	MessageChannel workerRequests() {
 		return channels.workerRequests();

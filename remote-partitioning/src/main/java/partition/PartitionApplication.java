@@ -16,6 +16,10 @@ import javax.sql.DataSource;
 @SpringBootApplication
 public class PartitionApplication {
 
+	public static void main(String args[]) {
+		SpringApplication.run(PartitionApplication.class, args);
+	}
+
 	@Bean
 	JdbcTemplate template(DataSource dataSource) {
 		return new JdbcTemplate(dataSource);
@@ -26,9 +30,5 @@ public class PartitionApplication {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setTrigger(new PeriodicTrigger(10));
 		return pollerMetadata;
-	}
-
-	public static void main(String args[]) {
-		SpringApplication.run(PartitionApplication.class, args);
 	}
 }

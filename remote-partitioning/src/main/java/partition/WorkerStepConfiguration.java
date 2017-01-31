@@ -5,10 +5,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.support.MySqlPagingQueryProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 import java.util.Collections;
-
 
 @Configuration
 class WorkerStepConfiguration {
@@ -55,11 +54,11 @@ class WorkerStepConfiguration {
 	@Bean
 	@StepScope
 	JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
-		JdbcBatchItemWriter<Person> writer = new JdbcBatchItemWriter<>();
-		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-		writer.setSql("INSERT INTO NEW_PEOPLE(id,age,first_name,email) VALUES(:id, :age, :firstName, :email )");
-		writer.setDataSource(dataSource);
-		return writer;
+		return new JdbcBatchItemWriterBuilder<Person>()
+				.beanMapped()
+				.sql("INSERT INTO NEW_PEOPLE(id,age,first_name,email) VALUES(:id, :age, :firstName, :email )")
+				.dataSource(dataSource)
+				.build();
 	}
 
 

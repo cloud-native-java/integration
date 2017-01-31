@@ -39,10 +39,15 @@ class PartitionWorkerConfiguration {
 	@Profile(Profiles.WORKER_PROFILE)
 	public static class StepExecutionRequestHandlerDelegator {
 
-		@Autowired
-		private StepExecutionRequestHandler handler;
+		private final StepExecutionRequestHandler handler;
 
-		@ServiceActivator(inputChannel = WORKER_REQUESTS, outputChannel = WORKER_REPLIES)
+		@Autowired
+		public StepExecutionRequestHandlerDelegator(StepExecutionRequestHandler handler) {
+			this.handler = handler;
+		}
+
+		@ServiceActivator(inputChannel = WORKER_REQUESTS,
+				outputChannel = WORKER_REPLIES)
 		public StepExecution handle(StepExecutionRequest request) {
 			return this.handler.handle(request);
 		}
