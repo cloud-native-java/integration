@@ -9,36 +9,31 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.MessageChannel;
 
 @Configuration
-@EnableBinding(PartitionWorkerChannels.PartitionWorker.class)
+@EnableBinding(WorkerChannels.Worker.class)
 @Profile(Profiles.WORKER_PROFILE)
-class PartitionWorkerChannels {
+class WorkerChannels {
 
-	private final PartitionWorker channels;
+	private final Worker worker;
 
 	@Autowired
-	public PartitionWorkerChannels(PartitionWorker channels) {
-		this.channels = channels;
+	public WorkerChannels(Worker worker) {
+		this.worker = worker;
 	}
 
-	MessageChannel workerRequests() {
-		return channels.workerRequests();
+	MessageChannel workerRequestsChannels() {
+		return this.worker.workerRequests();
 	}
 
-	MessageChannel workerReplies() {
-		return channels.workerReplies();
+	MessageChannel workerRepliesChannels() {
+		return this.worker.workerReplies();
 	}
 
-	public interface PartitionWorker {
+	public interface Worker {
 
-		String WORKER_REQUESTS = "workerRequests";
-
-		String WORKER_REPLIES = "workerReplies";
-
-		@Input(WORKER_REQUESTS)
+		@Input
 		MessageChannel workerRequests();
 
-		@Output(WORKER_REPLIES)
+		@Output
 		MessageChannel workerReplies();
-
 	}
 }

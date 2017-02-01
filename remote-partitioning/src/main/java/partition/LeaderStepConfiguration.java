@@ -7,49 +7,73 @@ import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.integration.partition.MessageChannelPartitionHandler;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-class PartitionStepConfiguration {
+class LeaderStepConfiguration {
 
-	@Value("${partition.grid-size:4}")
-	private int gridSize;
-
+	// <1>
 	@Bean
-	MessagingTemplate messagingTemplate(PartitionLeaderChannels channels) {
-		MessagingTemplate messagingTemplate = new MessagingTemplate(
-				channels.leaderRequestsChannel());
-		messagingTemplate.setReceiveTimeout(60 * 1000 * 60);
-		return messagingTemplate;
+	Step stagingStep(StepBuilderFactory sbf,
+	                 JdbcTemplate jdbc) {
+		return sbf
+				.get("staging")
+				.tasklet((contribution, chunkContext) -> {
+					jdbc.execute("truncate NEW_PEOPLE");
+					return RepeatStatus.FINISHED;
+				})
+				.build();
 	}
 
+	// <2>
+	@Bean
+	Step partitionStep(StepBuilderFactory sbf,
+	                   Partitioner p,
+	                   PartitionHandler ph,
+	                   WorkerStepConfiguration wsc) {
+		Step workerStep = wsc.workerStep(null);
+		return sbf.get("partitionStep")
+				.partitioner(workerStep.getName(), p)
+				.partitionHandler(ph)
+				.build();
+	}
+
+	// <3>
 	@Bean
 	MessageChannelPartitionHandler partitionHandler(
+			@Value("${partition.grid-size:4}") int gridSize,
 			MessagingTemplate messagingTemplate,
-			JobExplorer jobExplorer) throws Exception {
+			JobExplorer jobExplorer) {
 		MessageChannelPartitionHandler partitionHandler = new MessageChannelPartitionHandler();
 		partitionHandler.setMessagingOperations(messagingTemplate);
 		partitionHandler.setJobExplorer(jobExplorer);
 		partitionHandler.setStepName("workerStep");
-		partitionHandler.setGridSize(this.gridSize);
+		partitionHandler.setGridSize(gridSize);
 		return partitionHandler;
 	}
 
+	// <4>
+	@Bean
+	MessagingTemplate messagingTemplate(LeaderChannels channels) {
+		return new MessagingTemplate(channels.leaderRequestsChannel());
+	}
+
+	// <5>
 	@Bean
 	Partitioner partitioner(JdbcOperations jdbcTemplate,
 	                        @Value("${partition.table:PEOPLE}") String table,
 	                        @Value("${partition.column:ID}") String column) {
 		return gridSize -> {
-
 			Map<String, ExecutionContext> result = new HashMap<>();
-
 			int min = jdbcTemplate.queryForObject("SELECT MIN(" + column
 					+ ") from " + table, Integer.class);
 			int max = jdbcTemplate.queryForObject("SELECT MAX(" + column
@@ -74,18 +98,5 @@ class PartitionStepConfiguration {
 
 			return result;
 		};
-	}
-
-	@Bean
-	Step partitionStep(StepBuilderFactory sbf,
-	                   Partitioner partitioner,
-	                   PartitionHandler partitionHandler,
-	                   WorkerStepConfiguration workerStepConfiguration) throws Exception {
-		Step step = workerStepConfiguration.workerStep(null);
-		return sbf.get("partitionStep")
-				.partitioner(step.getName(), partitioner)
-				.step(step)
-				.partitionHandler(partitionHandler)
-				.build();
 	}
 }

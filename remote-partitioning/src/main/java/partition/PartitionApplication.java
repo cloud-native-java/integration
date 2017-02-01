@@ -5,13 +5,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.support.PeriodicTrigger;
 
 import javax.sql.DataSource;
+import java.util.concurrent.TimeUnit;
 
-@EnableBatchProcessing
+@EnableBatchProcessing // <1>
 @IntegrationComponentScan
 @SpringBootApplication
 public class PartitionApplication {
@@ -20,15 +21,14 @@ public class PartitionApplication {
 		SpringApplication.run(PartitionApplication.class, args);
 	}
 
-	@Bean
-	JdbcTemplate template(DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
-	}
-
+	// <2>
 	@Bean(name = PollerMetadata.DEFAULT_POLLER)
 	PollerMetadata defaultPoller() {
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(new PeriodicTrigger(10));
-		return pollerMetadata;
+		return Pollers.fixedRate(10, TimeUnit.SECONDS).get();
+	}
+
+	@Bean
+	JdbcTemplate jdbcTemplate(DataSource dataSource) {
+		return new JdbcTemplate(dataSource);
 	}
 }

@@ -1,7 +1,5 @@
 package partition;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -20,23 +18,22 @@ import java.util.Collections;
 @Configuration
 class WorkerStepConfiguration {
 
-	private Log log = LogFactory.getLog(getClass());
-
+	// <1>
 	@Value("${partition.chunk-size}")
 	private int chunk;
 
+	// <2>
 	@Bean
 	@StepScope
-	JdbcPagingItemReader<Person> reader(DataSource dataSource,
-	                                    @Value("#{stepExecutionContext['minValue']}") Long minValue,
-	                                    @Value("#{stepExecutionContext['maxValue']}") Long maxValue) {
-
-		log.info("reading " + minValue + " to " + maxValue);
+	JdbcPagingItemReader<Person> reader(
+			DataSource dataSource,
+			@Value("#{stepExecutionContext['minValue']}") Long min,
+			@Value("#{stepExecutionContext['maxValue']}") Long max) {
 
 		MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
 		queryProvider.setSelectClause("id as id, email as email, age as age, first_name as firstName");
 		queryProvider.setFromClause("from PEOPLE");
-		queryProvider.setWhereClause("where id >= " + minValue + " and id <= " + maxValue);
+		queryProvider.setWhereClause("where id >= " + min + " and id <= " + max);
 		queryProvider.setSortKeys(Collections.singletonMap("id", Order.ASCENDING));
 
 		JdbcPagingItemReader<Person> reader = new JdbcPagingItemReader<>();
@@ -51,25 +48,24 @@ class WorkerStepConfiguration {
 		return reader;
 	}
 
+	// <3>
 	@Bean
-	@StepScope
-	JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
+	JdbcBatchItemWriter<Person> writer(DataSource ds) {
 		return new JdbcBatchItemWriterBuilder<Person>()
 				.beanMapped()
+				.dataSource(ds)
 				.sql("INSERT INTO NEW_PEOPLE(age,first_name,email) VALUES(:age, :firstName, :email )")
-				.dataSource(dataSource)
 				.build();
 	}
 
-
+	// <4>
 	@Bean
-	Step workerStep(StepBuilderFactory stepBuilderFactory) {
-		return stepBuilderFactory
+	Step workerStep(StepBuilderFactory sbf) {
+		return sbf
 				.get("workerStep")
 				.<Person, Person>chunk(this.chunk)
 				.reader(reader(null, null, null))
 				.writer(writer(null))
 				.build();
 	}
-
 }

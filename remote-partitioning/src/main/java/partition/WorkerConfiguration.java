@@ -1,27 +1,29 @@
 package partition;
 
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.step.StepLocator;
 import org.springframework.batch.integration.partition.BeanFactoryStepLocator;
 import org.springframework.batch.integration.partition.StepExecutionRequest;
 import org.springframework.batch.integration.partition.StepExecutionRequestHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.support.GenericHandler;
+import org.springframework.messaging.MessageChannel;
 
 @Configuration
-@Profile(Profiles.WORKER_PROFILE)
-class PartitionWorkerConfiguration {
+@Profile(Profiles.WORKER_PROFILE)  // <1>
+class WorkerConfiguration {
 
+	// <2>
 	@Bean
 	StepLocator stepLocator() {
 		return new BeanFactoryStepLocator();
 	}
 
+	// <3>
 	@Bean
 	StepExecutionRequestHandler stepExecutionRequestHandler(
 			JobExplorer explorer, StepLocator stepLocator) {
@@ -31,21 +33,19 @@ class PartitionWorkerConfiguration {
 		return handler;
 	}
 
-	@MessageEndpoint
-	@Profile(Profiles.WORKER_PROFILE)
-	public static class StepExecutionRequestHandlerDelegator {
+	// <4>
+	@Bean
+	IntegrationFlow stepExecutionRequestHandlerFlow(
+			WorkerChannels channels,
+			StepExecutionRequestHandler handler) {
 
-		private final StepExecutionRequestHandler handler;
+		MessageChannel channel = channels.workerRequestsChannels();
+		GenericHandler<StepExecutionRequest> executionHandler =
+				(payload, headers) -> handler.handle(payload);
 
-		@Autowired
-		public StepExecutionRequestHandlerDelegator(StepExecutionRequestHandler handler) {
-			this.handler = handler;
-		}
-
-		@ServiceActivator(inputChannel = PartitionWorkerChannels.PartitionWorker.WORKER_REQUESTS,
-				outputChannel = PartitionWorkerChannels.PartitionWorker.WORKER_REPLIES)
-		public StepExecution handle(StepExecutionRequest request) {
-			return this.handler.handle(request);
-		}
+		return IntegrationFlows.from(channel)
+				.handle(StepExecutionRequest.class, executionHandler)
+				.channel(channels.workerRepliesChannels())
+				.get();
 	}
 }

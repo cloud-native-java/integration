@@ -16,13 +16,13 @@ import java.util.Date;
 
 @RestController
 @Profile(Profiles.LEADER_PROFILE)
-class JobLauncherRestController {
+class PartitionRestController {
 
 	private final Job job;
 	private final JobLauncher jobLauncher;
 
 	@Autowired
-	public JobLauncherRestController(
+	public PartitionRestController(
 			JobConfiguration jobConfiguration,
 			JobLauncher jobLauncher) throws Exception {
 		this.jobLauncher = jobLauncher;
