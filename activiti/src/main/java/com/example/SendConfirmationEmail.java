@@ -5,8 +5,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 class SendConfirmationEmail {
 
@@ -15,7 +13,6 @@ class SendConfirmationEmail {
 	public void execute(ActivityExecution execution) throws Exception {
 		this.log.info("in " + getClass().getName() + ", customerId = "
 				+ execution.getVariable("customerId"));
-
 		// exercise to reader: send an email, perhaps
 		// using Sendgrid?
 	}

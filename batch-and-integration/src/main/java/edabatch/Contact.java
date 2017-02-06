@@ -8,6 +8,13 @@ public class Contact {
 		this.id = id;
 	}
 
+	public Contact(boolean validEmail, String full_name, String email, long id) {
+		this.fullName = full_name;
+		this.validEmail = validEmail;
+		this.email = email;
+		this.id = id;
+	}
+
 	public Contact() {
 	}
 
@@ -35,6 +42,10 @@ public class Contact {
 	}
 
 	public boolean isValidEmail() {
+		return validEmail;
+	}
+
+	public boolean getValidEmail() {
 		return validEmail;
 	}
 

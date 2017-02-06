@@ -15,7 +15,6 @@ import java.util.Map;
 @Configuration
 class BatchConfiguration {
 
-
 	// <1>
 	@Bean
 	Job etl(JobBuilderFactory jbf,

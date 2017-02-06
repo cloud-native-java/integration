@@ -16,15 +16,15 @@ import java.io.File;
 @Configuration
 public class IntegrationConfiguration {
 
-	private Log log = LogFactory.getLog(getClass());
+	private final Log log = LogFactory.getLog(getClass());
 
 	@Bean
 	IntegrationFlow etlFlow(
-			@Value("${input-directory:${HOME}/Desktop/in}") File directory) {
+			@Value("${input-directory:${HOME}/Desktop/in}") File dir) {
 		// @formatter:off
 		return IntegrationFlows
 				// <1>
-				.from(Files.inboundAdapter(directory).autoCreateDirectory(true),
+				.from(Files.inboundAdapter(dir).autoCreateDirectory(true),
 						consumer -> consumer.poller(poller -> poller
 								.fixedRate(1000)))
 				// <2>
@@ -43,7 +43,7 @@ public class IntegrationConfiguration {
 		// @formatter:on
 	}
 
-	boolean hasExt(Object f, String ext) {
+	private boolean hasExt(Object f, String ext) {
 		File file = File.class.cast(f);
 		return file.getName().toLowerCase().endsWith(ext.toLowerCase());
 	}

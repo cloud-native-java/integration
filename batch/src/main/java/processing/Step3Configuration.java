@@ -30,9 +30,9 @@ class Step3Configuration {
 				.build();
 	}
 
+	//<2>
 	@Bean
 	@StepScope
-		//<2>
 	FlatFileItemWriter<Map<Integer, Integer>> fileWriter(
 			@Value("file://#{jobParameters['output']}") Resource out) {
 
@@ -51,9 +51,7 @@ class Step3Configuration {
 		return new FlatFileItemWriterBuilder<Map<Integer, Integer>>()
 				.name("file-writer")
 				.resource(out)
-				.lineAggregator(
-						aggregator)
+				.lineAggregator(aggregator)
 				.build();
 	}
-
 }

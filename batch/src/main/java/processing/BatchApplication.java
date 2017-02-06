@@ -4,7 +4,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -32,16 +31,16 @@ public class BatchApplication {
 
 	// <1>
 	@Bean
-	CommandLineRunner job(
+	CommandLineRunner run(
 			JobLauncher launcher,
-			@Qualifier("etl") Job job,
+			Job job,
 			@Value("${user.home}") String home) {
 		return args ->
 				launcher.run(job,
-					new JobParametersBuilder()
-						.addString("input", path(home, "in.csv"))
-						.addString("output", path(home, "out.csv"))
-						.toJobParameters());
+						new JobParametersBuilder()
+								.addString("input", path(home, "in.csv"))
+								.addString("output", path(home, "out.csv"))
+								.toJobParameters());
 	}
 
 	public static void main(String[] args) {

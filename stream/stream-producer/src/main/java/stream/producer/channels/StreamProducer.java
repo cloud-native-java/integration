@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import stream.producer.ProducerChannels;
 
 @SpringBootApplication
-@EnableBinding(ProducerChannels.class)
-// <1>
+@EnableBinding(ProducerChannels.class) // <1>
 public class StreamProducer {
 
 	public static void main(String args[]) {

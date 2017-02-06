@@ -18,10 +18,12 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-import org.springframework.util.StreamUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Configuration
 public class IntegrationConfiguration {
@@ -87,7 +89,7 @@ public class IntegrationConfiguration {
 	@Bean
 	IntegrationFlow finishedJobsFlow(
 			@Value("${completed-directory:${HOME}/Desktop/completed}") File finished,
-			JdbcTemplate template) {
+			JdbcTemplate jdbcTemplate) {
 		// @formatter:off
 		return IntegrationFlows
 				.from(completed())
@@ -97,12 +99,13 @@ public class IntegrationConfiguration {
 									.get(FileHeaders.ORIGINAL_FILE));
 							File file = new File(ogFileName);
 							mv(file, finished);
-							List<Contact> contacts = template.query(
+							List<Contact> contacts = jdbcTemplate.query(
 									"select * from CONTACT",
-									(rs, i) -> new Contact(rs
-											.getString("full_name"), rs
-											.getString("email"), rs
-											.getLong("id")));
+									(rs, i) -> new Contact(
+											rs.getBoolean("valid_email"),
+											rs.getString("full_name"),
+											rs.getString("email"),
+											rs.getLong("id")));
 							contacts.forEach(log::info);
 							return null;
 						}).get();
@@ -127,18 +130,12 @@ public class IntegrationConfiguration {
 	}
 
 	private void mv(File in, File out) {
-		// @formatter:off
 		try {
 			Assert.isTrue(out.exists() || out.mkdirs());
-			try (InputStream inStream = new BufferedInputStream(
-					new FileInputStream(in));
-					OutputStream outStream = new BufferedOutputStream(
-							new FileOutputStream(out))) {
-				StreamUtils.copy(inStream, outStream);
-			}
-		} catch (Exception e) {
+			File target = new File(out, in.getName());
+			java.nio.file.Files.copy(in.toPath(), target.toPath(), REPLACE_EXISTING);
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		// @formatter:on
 	}
 }

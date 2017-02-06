@@ -11,12 +11,10 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,10 +42,10 @@ public class BatchConfiguration {
 
 	@Bean
 	Job job(JobBuilderFactory jobBuilderFactory,
-			StepBuilderFactory stepBuilderFactory, JdbcTemplate template,
-			ItemReader<Contact> fileReader,
-			ItemProcessor<Contact, Contact> emailProcessor,
-			ItemWriter<Contact> jdbcWriter) {
+	        StepBuilderFactory stepBuilderFactory, JdbcTemplate template,
+	        ItemReader<Contact> fileReader,
+	        ItemProcessor<Contact, Contact> emailProcessor,
+	        ItemWriter<Contact> jdbcWriter) {
 
 		Step setup = stepBuilderFactory.get("clean-contact-table")
 				.tasklet((contribution, chunkContext) -> {
@@ -58,7 +56,7 @@ public class BatchConfiguration {
 
 		Step fileToJdbc = stepBuilderFactory
 				.get("file-to-jdbc-fileToJdbc")
-				.<Contact, Contact> chunk(5)
+				.<Contact, Contact>chunk(5)
 				// <1>
 				.reader(fileReader).processor(emailProcessor)
 				.writer(jdbcWriter)
@@ -83,13 +81,13 @@ public class BatchConfiguration {
 	@Bean
 	@StepScope
 	FlatFileItemReader<Contact> fileReader(
-			@Value("file://#{jobParameters['file']}") Resource pathToFile,
-			DefaultLineMapper<Contact> lm) {
-
-		FlatFileItemReader<Contact> itemReader = new FlatFileItemReader<>();
-		itemReader.setResource(pathToFile);
-		itemReader.setLineMapper(lm);
-		return itemReader;
+			@Value("file://#{jobParameters['file']}") Resource pathToFile) throws Exception {
+		return new FlatFileItemReaderBuilder<Contact>()
+				.name("file-reader")
+				.resource(pathToFile)
+				.targetType(Contact.class)
+				.delimited().names("fullName,email".split(","))
+				.build();
 	}
 
 	public static class InvalidEmailException extends Exception {
@@ -115,29 +113,10 @@ public class BatchConfiguration {
 	// <7>
 	@Bean
 	JdbcBatchItemWriter<Contact> jdbcWriter(DataSource dataSource) {
-
-		JdbcBatchItemWriter<Contact> batchItemWriter = new JdbcBatchItemWriter<>();
-		batchItemWriter
-				.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-		batchItemWriter.setDataSource(dataSource);
-		batchItemWriter
-				.setSql("insert into CONTACT( full_name, email, valid_email ) values ( :fullName, :email, :validEmail )");
-		return batchItemWriter;
-	}
-
-	// <8>
-	@Bean
-	DefaultLineMapper<Contact> lineMapper() {
-
-		DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
-		tokenizer.setNames("fullName,email".split(","));
-
-		BeanWrapperFieldSetMapper<Contact> mapper = new BeanWrapperFieldSetMapper<>();
-		mapper.setTargetType(Contact.class);
-
-		DefaultLineMapper<Contact> defaultLineMapper = new DefaultLineMapper<>();
-		defaultLineMapper.setFieldSetMapper(mapper);
-		defaultLineMapper.setLineTokenizer(tokenizer);
-		return defaultLineMapper;
+		return new JdbcBatchItemWriterBuilder<Contact>()
+				.dataSource(dataSource)
+				.beanMapped()
+				.sql("insert into CONTACT( full_name, email, valid_email ) values ( :fullName, :email, :validEmail )")
+				.build();
 	}
 }

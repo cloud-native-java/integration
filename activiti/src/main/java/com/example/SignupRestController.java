@@ -28,14 +28,14 @@ class SignupRestController {
 	// <1>
 	@Autowired
 	public SignupRestController(RuntimeService runtimeService,
-			TaskService taskService, CustomerRepository repository) {
+	                            TaskService taskService, CustomerRepository repository) {
 		this.runtimeService = runtimeService;
 		this.taskService = taskService;
 		this.customerRepository = repository;
 	}
 
 	// <2>
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping
 	public ResponseEntity<?> startProcess(@RequestBody Customer customer) {
 		Assert.notNull(customer);
 		Customer save = this.customerRepository.save(new Customer(customer
@@ -53,7 +53,7 @@ class SignupRestController {
 	}
 
 	// <3>
-	@RequestMapping(method = RequestMethod.GET, value = "/{customerId}/signup/errors")
+	@GetMapping("/{customerId}/signup/errors")
 	public List<String> readErrors(@PathVariable String customerId) {
 		return this.taskService.createTaskQuery().active()
 				.taskName("fix-errors").includeProcessVariables()
@@ -63,9 +63,9 @@ class SignupRestController {
 	}
 
 	// <4>
-	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/errors/{taskId}")
+	@PostMapping("/{customerId}/signup/errors/{taskId}")
 	public void fixErrors(@PathVariable String customerId,
-			@PathVariable String taskId, @RequestBody Customer fixedCustomer) {
+	                      @PathVariable String taskId, @RequestBody Customer fixedCustomer) {
 
 		Customer customer = this.customerRepository.findOne(Long
 				.parseLong(customerId));
@@ -91,15 +91,17 @@ class SignupRestController {
 	}
 
 	// <5>
-	@RequestMapping(method = RequestMethod.POST, value = "/{customerId}/signup/confirmation")
+	@PostMapping("/{customerId}/signup/confirmation")
 	public void confirm(@PathVariable String customerId) {
-		this.taskService.createTaskQuery().active().taskName("confirm-email")
+		this.taskService.createTaskQuery()
+				.active()
+				.taskName("confirm-email")
 				.includeProcessVariables()
 				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
 				.list().forEach(t -> {
-					log.info(t.toString());
-					taskService.complete(t.getId());
-				});
+			log.info(t.toString());
+			taskService.complete(t.getId());
+		});
 		this.log.info("confirmed email receipt for " + customerId);
 	}
 }
