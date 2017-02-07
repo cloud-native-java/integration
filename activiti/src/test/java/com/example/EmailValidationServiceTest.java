@@ -1,15 +1,14 @@
 package com.example;
 
+import com.example.email.EmailValidationService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@WebAppConfiguration
 @SpringBootTest(classes = DemoApplication.class)
 public class EmailValidationServiceTest {
 
@@ -17,11 +16,9 @@ public class EmailValidationServiceTest {
 	private EmailValidationService emailValidationService;
 
 	@Test
-	public void testFeignPoweredClient() throws Exception {
-
+	public void testEmailValidation() throws Exception {
 		Assert.assertTrue(this.emailValidationService
 				.isEmailValid("george@email.com"));
 		Assert.assertFalse(this.emailValidationService.isEmailValid("george"));
 	}
-
 }

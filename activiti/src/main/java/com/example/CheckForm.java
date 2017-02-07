@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.email.EmailValidationService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.springframework.beans.factory.annotation.Autowired;

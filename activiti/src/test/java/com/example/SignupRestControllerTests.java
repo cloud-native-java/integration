@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.email.EmailValidationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aopalliance.intercept.MethodInterceptor;
