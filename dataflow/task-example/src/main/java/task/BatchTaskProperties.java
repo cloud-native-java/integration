@@ -16,12 +16,4 @@ public class BatchTaskProperties {
 	public void setInput(Resource input) {
 		this.input = input;
 	}
-
-	public Resource getOutput() {
-		return output;
-	}
-
-	public void setOutput(Resource output) {
-		this.output = output;
-	}
 }

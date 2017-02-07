@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -31,27 +32,27 @@ class DataFlowInitializer {
 
 		// <2>
 		Stream.of(
-				"http://bit.ly/stream-applications-rabbit-maven"
-		//	,	new URL(baseUri.toURL(), "app.properties").toString()
+				"http://bit.ly/stream-applications-rabbit-maven",
+				new URL(baseUri.toURL(), "app.properties").toString()
 		)
 				.parallel()
 				.forEach(u -> df.appRegistryOperations().importFromResource(u, true));
 
-		if (false) {
-			TaskOperations taskOperations = df.taskOperations();
-			Stream.of("batch-task", "simple-task")
-					.forEach(tn -> {
-						String name = "my-" + tn;
-						taskOperations.create(name, tn); // <3>
-						Map<String, String> properties = Collections.singletonMap("simple-batch-task.input", System.getenv("HOME") + "Desktop/in.csv");
-						List<String> arguments = Arrays.asList("input=in", "output=out");
-						taskOperations.launch(name, properties, arguments); // <4>
-					});
-		}
+
+		TaskOperations taskOperations = df.taskOperations();
+		Stream.of("batch-task", "simple-task")
+				.forEach(tn -> {
+					String name = "my-" + tn;
+					taskOperations.create(name, tn); // <3>
+					Map<String, String> properties = Collections.singletonMap("simple-batch-task.input", System.getenv("HOME") + "Desktop/in.csv");
+					List<String> arguments = Arrays.asList("input=in", "output=out");
+					taskOperations.launch(name, properties, arguments); // <4>
+				});
+
 
 		// <3>
 		Map<String, String> streams = new HashMap<>();
-		//	streams.put("bracket-time", "time | brackets | log");
+		streams.put("bracket-time", "time | brackets | log");
 		streams.entrySet().parallelStream()
 				.forEach(stream -> df.streamOperations()
 						.createStream(stream.getKey(), stream.getValue(), true));

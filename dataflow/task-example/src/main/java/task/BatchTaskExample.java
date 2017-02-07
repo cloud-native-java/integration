@@ -25,7 +25,7 @@ public class BatchTaskExample {
 		return sbf
 				.get("tasklet")
 				.tasklet((contribution, chunkContext) -> {
-					log.info("input = " + btp.getInput() + ", output = " + btp.getOutput());
+					log.info("input = " + btp.getInput());
 					return RepeatStatus.FINISHED;
 				})
 				.build();
