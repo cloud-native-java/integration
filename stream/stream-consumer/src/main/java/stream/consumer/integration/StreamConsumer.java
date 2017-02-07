@@ -27,14 +27,14 @@ public class StreamConsumer {
 		Log log = LogFactory.getLog(getClass());
 
 		return IntegrationFlows
-				.from(incoming)
-				.transform(String.class, String::toUpperCase)
-				.handle(String.class,
-						(greeting, headers) -> {
-							log.info("greeting received in IntegrationFlow ("
-									+ prefix + "): " + greeting);
-							return null;
-						}).get();
+			.from(incoming)
+			.transform(String.class, String::toUpperCase)
+			.handle(String.class,
+					(greeting, headers) -> {
+						log.info("greeting received in IntegrationFlow ("
+								+ prefix + "): " + greeting);
+						return null;
+					}).get();
 	}
 
 	@Bean

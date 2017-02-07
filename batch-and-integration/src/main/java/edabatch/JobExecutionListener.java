@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JobExecutionListener {
+class JobExecutionListener {
 
 	private final JdbcTemplate jdbcTemplate;
 

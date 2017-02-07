@@ -24,9 +24,11 @@ public class IntegrationConfiguration {
 		// @formatter:off
 		return IntegrationFlows
 				// <1>
-				.from(Files.inboundAdapter(dir).autoCreateDirectory(true),
-						consumer -> consumer.poller(poller -> poller
-								.fixedRate(1000)))
+				.from(Files
+								.inboundAdapter(dir)
+								.autoCreateDirectory(true),
+					consumer -> consumer.poller(
+						spec -> spec.fixedRate(1000)))
 				// <2>
 				.handle(File.class, (file, headers) -> {
 					log.info("we noticed a new file, " + file);
@@ -34,11 +36,11 @@ public class IntegrationConfiguration {
 				})
 				// <3>
 				.routeToRecipients(
-						spec -> spec
-								.recipient(csv(),
-										msg -> hasExt(msg.getPayload(), ".csv"))
-								.recipient(txt(),
-										msg -> hasExt(msg.getPayload(), ".txt")))
+					spec -> spec
+						.recipient(csv(),
+								msg -> hasExt(msg.getPayload(), ".csv"))
+						.recipient(txt(),
+								msg -> hasExt(msg.getPayload(), ".txt")))
 				.get();
 		// @formatter:on
 	}
