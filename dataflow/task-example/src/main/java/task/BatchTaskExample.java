@@ -13,8 +13,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Map;
-
 @EnableTask  // <1>
 @EnableBatchProcessing
 @SpringBootApplication
@@ -23,17 +21,11 @@ public class BatchTaskExample {
 	private Log log = LogFactory.getLog(getClass());
 
 	@Bean
-	Step tasklet(StepBuilderFactory sbf) {
+	Step tasklet(StepBuilderFactory sbf, BatchTaskProperties btp) {
 		return sbf
 				.get("tasklet")
 				.tasklet((contribution, chunkContext) -> {
-					log.info("Hello, world. " +
-							"Here are the parameters: ");
-					chunkContext
-						.getStepContext()
-						.getJobParameters()
-						.entrySet()
-						.forEach(this::log);
+					log.info("input = " + btp.getInput() + ", output = " + btp.getOutput());
 					return RepeatStatus.FINISHED;
 				})
 				.build();
@@ -41,15 +33,11 @@ public class BatchTaskExample {
 
 	@Bean
 	Job hello(JobBuilderFactory jbf) {
-		Step step = this.tasklet(null);
+		Step step = this.tasklet(null, null);
 		return jbf
-				.get("hello")
+				.get("batch-task")
 				.start(step)
 				.build();
-	}
-
-	private void log(Map.Entry<String, Object> e) {
-		log.info(e.getKey() + ':' + e.getValue());
 	}
 
 	public static void main(String[] args) {

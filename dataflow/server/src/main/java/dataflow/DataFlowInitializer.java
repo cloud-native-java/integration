@@ -1,62 +1,59 @@
 package dataflow;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
+import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 
-//@Component
-// TODO
-public class DataFlowInitializer {
+@Component
+class DataFlowInitializer {
 
-	@Value("${server.port}")
-	private int port;
+	private final URI baseUri;
+
+	@Autowired
+	public DataFlowInitializer(@Value("${server.port}") int port) {
+		this.baseUri = URI.create("http://localhost:" + port);
+	}
 
 	@EventListener(ApplicationReadyEvent.class)
-	public void applicationIsReady(ApplicationReadyEvent e) throws Exception {
+	public void deployOnStart(ApplicationReadyEvent e) throws Exception {
 
-		URI baseUri = URI.create ("http://localhost:" + port);
-		DataFlowTemplate dataFlowTemplate = new DataFlowTemplate(baseUri, new RestTemplate());
+		// <1>
+		DataFlowTemplate df = new DataFlowTemplate(baseUri, new RestTemplate());
 
-		// Import event stream apps //TODO show how to deploy custom apps defined locally
-		dataFlowTemplate.appRegistryOperations()
-				.importFromResource(new URL(baseUri.toURL(), "app.properties").toString(), false);
+		// <2>
+		Stream.of(
+				"http://bit.ly/stream-applications-rabbit-maven"
+		//	,	new URL(baseUri.toURL(), "app.properties").toString()
+		)
+				.parallel()
+				.forEach(u -> df.appRegistryOperations().importFromResource(u, true));
 
-		// Import RabbitMQ stream apps
-		dataFlowTemplate.appRegistryOperations()
-				.importFromResource("http://bit.ly/stream-applications-rabbit-maven", false);
+		if (false) {
+			TaskOperations taskOperations = df.taskOperations();
+			Stream.of("batch-task", "simple-task")
+					.forEach(tn -> {
+						String name = "my-" + tn;
+						taskOperations.create(name, tn); // <3>
+						Map<String, String> properties = Collections.singletonMap("simple-batch-task.input", System.getenv("HOME") + "Desktop/in.csv");
+						List<String> arguments = Arrays.asList("input=in", "output=out");
+						taskOperations.launch(name, properties, arguments); // <4>
+					});
+		}
 
-		// Deploy a set of event stream definitions
-		List<StreamApp> streams = Arrays.asList(
-				new StreamApp("account-stream",
-						"account-web: account-web | account-worker: account-worker"),
-				new StreamApp("order-stream",
-						"order-web: order-web | order-worker: order-worker"),
-				new StreamApp("payment-stream",
-						"payment-web: payment-web | payment-worker: payment-worker"),
-				new StreamApp("warehouse-stream",
-						"warehouse-web: warehouse-web | warehouse-worker: warehouse-worker"));
-
-		// Deploy the streams in parallel
-		streams.parallelStream()
-				.forEach(stream -> dataFlowTemplate.streamOperations()
-						.createStream(stream.getName(), stream.getDefinition(), true));
-
+		// <3>
+		Map<String, String> streams = new HashMap<>();
+		//	streams.put("bracket-time", "time | brackets | log");
+		streams.entrySet().parallelStream()
+				.forEach(stream -> df.streamOperations()
+						.createStream(stream.getKey(), stream.getValue(), true));
 	}
-}
-
-@Data
-@AllArgsConstructor
-class StreamApp {
-	private String name;
-	private String definition;
 }
