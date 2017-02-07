@@ -71,10 +71,8 @@ public class BatchConfiguration {
 						}).retry(HttpStatusCodeException.class) // <3>
 				.retryLimit(2).build();
 
-		Job job = jobBuilderFactory.get("etl") // <4>
+		return jobBuilderFactory.get("etl") // <4>
 				.start(setup).next(fileToJdbc).build();
-
-		return job;
 	}
 
 	// <5>
