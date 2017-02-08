@@ -55,11 +55,18 @@ class SignupRestController {
 	// <3>
 	@GetMapping("/{customerId}/signup/errors")
 	public List<String> readErrors(@PathVariable String customerId) {
-		return this.taskService.createTaskQuery().active()
-				.taskName("fix-errors").includeProcessVariables()
-				.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
-				.list().stream().map(TaskInfo::getId)
+		// @formatter:off
+		return this.taskService
+				.createTaskQuery()
+					.active()
+					.taskName("fix-errors")
+					.includeProcessVariables()
+					.processVariableValueEquals(CUSTOMER_ID_PV_KEY, customerId)
+				.list()
+					.stream()
+					.map(TaskInfo::getId)
 				.collect(Collectors.toList());
+		// @formatter:on
 	}
 
 	// <4>
