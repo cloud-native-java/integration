@@ -14,9 +14,10 @@ function deploy_cfdf(){
     server_mysql=cfdf-mysql
     server_rabbit=cfdf-rabbit
 
+    cf d -f $app_name
     cf ds -f $server_rabbit
     cf ds -f $server_redis
-    cf ds -f $server_mysql 
+    cf ds -f $server_mysql
 
     app_name=$1
 
@@ -40,9 +41,9 @@ function deploy_cfdf(){
 
     cf push $app_name -m 2G -k 2G --no-start -p ${server_jar}
 
-    cf s | grep $server_redis || cf cs rediscloud 30mb $server_redis
-    cf s | grep $server_mysql || cf cs p-mysql 100mb $server_mysql
-    cf s | grep $server_rabbit || cf cs cloudamqp lemur $server_rabbit
+    cf s | grep $server_redis   || cf cs rediscloud 30mb $server_redis
+    cf s | grep $server_mysql   || cf cs p-mysql 100mb $server_mysql
+    cf s | grep $server_rabbit  || cf cs cloudamqp lemur $server_rabbit
 
     cf bind-service $app_name $server_redis
     cf bind-service $app_name $server_mysql
