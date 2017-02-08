@@ -93,7 +93,8 @@ class SignupRestController {
 	// <5>
 	@PostMapping("/{customerId}/signup/confirmation")
 	public void confirm(@PathVariable String customerId) {
-		this.taskService.createTaskQuery()
+		this.taskService
+				.createTaskQuery()
 				.active()
 				.taskName("confirm-email")
 				.includeProcessVariables()
