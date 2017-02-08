@@ -8,6 +8,7 @@ cache:
     - $HOME/.m2/repository/
 
 install:
+  - rm -rf $HOME/.m2/repository/ 
   - git clone https://github.com/cloud-native-java/build.git
   - ./build/install.sh $CF_USER $CF_PASSWORD $CF_ORG $CF_SPACE
 
