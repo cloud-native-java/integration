@@ -4,14 +4,9 @@ set -e
 
 source $BUILD_DIRECTORY/utils/cf-common.sh
 
-mvn -DskipTests clean install
-
 cfdf_server_name=cfdf
 
-# the first thing we should install is the
-# Cloud Foundry Spring Cloud Data Flow service
-
-function cfdf(){
+function deploy_cfdf(){
 
     server_jar=`dirname $0`/cfdf-server.jar
 
@@ -68,11 +63,48 @@ function cfdf(){
     cf start $app_name
 }
 
-# things to do:
-# setup a dataflow-resources app that simply serves up the definition of the custom app definitions.
-# It could be a trivial
 
-cfdf $cfdf_server_name
+
+mvn -DskipTests clean install
+integration=$(cd `dirname $0` &&  pwd  );
+
+function server_definitions(){
+
+    # this serves no purpose but to expose
+    # files over HTTP for the rest of the
+    # integration tests.
+
+    cd ${integration}/dataflow
+    deploy_app server-definitions
+}
+
+function dataflow(){
+
+    # deploys the Spring Cloud Data Flow Cloud Foundry server
+
+    cd ${integration}
+    deploy_cfdf ${cfdf_server_name}
+}
+
+function remote_partitioning(){
+
+    # deploys a partitioned batch
+    # job across 4 cluster nodes.
+
+    mysql=batch-mysql
+    rmq=batch-rabbitmq
+
+    cf s | grep $mysql     || cf cs p-mysql 100mb $mysql
+    cf s | grep $rmq       || cf cs cloudamqp lemur $rmq
+
+    cd ${integration}/remote-partitioning
+    cf push -f manifest-leader.yml
+    cf push -f manifest-worker.yml
+}
+
+server_definitions
+dataflow
+remote_partitioning
 
 
 #

@@ -2,12 +2,13 @@
 applications:
 - name: partition-worker
   memory: 1G
-  instances: 10
+  instances: 4
   host: partition-worker-${random-word}
-  path: target/partition.jar
+  path: target/remote-partitioning.jar
   services:
-    - batch-psql
+    - batch-mysql
     - batch-rabbitmq
   env:
     DEBUG: "true"
-    SPRING_PROFILES_ACTIVE: worker,cloud
+    SPRING_PROFILES_ACTIVE: worker, cloud
+    SERVER_PORT: 80

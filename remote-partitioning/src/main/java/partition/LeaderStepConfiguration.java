@@ -22,12 +22,12 @@ class LeaderStepConfiguration {
 	Step stagingStep(StepBuilderFactory sbf,
 	                 JdbcTemplate jdbc) {
 		return sbf
-				.get("staging")
-				.tasklet((contribution, chunkContext) -> {
-					jdbc.execute("truncate NEW_PEOPLE");
-					return RepeatStatus.FINISHED;
-				})
-				.build();
+			.get("staging")
+			.tasklet((contribution, chunkContext) -> {
+				jdbc.execute("truncate NEW_PEOPLE");
+				return RepeatStatus.FINISHED;
+			})
+			.build();
 	}
 
 	// <2>

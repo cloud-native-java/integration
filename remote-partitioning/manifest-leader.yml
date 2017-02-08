@@ -4,9 +4,10 @@ applications:
   memory: 1G
   instances: 1
   host: partition-master-${random-word}
-  path: target/partition.jar
+  path: target/remote-partitioning.jar
   services:
-    - batch-psql
+    - batch-mysql
     - batch-rabbitmq
   env:
     DEBUG: "true"
+    SERVER_PORT: 80

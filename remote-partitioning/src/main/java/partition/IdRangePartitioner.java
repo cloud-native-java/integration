@@ -11,7 +11,7 @@ class IdRangePartitioner implements Partitioner {
 	private final JdbcOperations jdbcTemplate;
 	private final String column, table;
 
-	public IdRangePartitioner(JdbcOperations jdbcTemplate, String table, String column) {
+	IdRangePartitioner(JdbcOperations jdbcTemplate, String table, String column) {
 		this.jdbcTemplate = jdbcTemplate;
 		this.column = column;
 		this.table = table;
