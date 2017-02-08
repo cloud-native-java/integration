@@ -6,6 +6,7 @@ source $BUILD_DIRECTORY/utils/cf-common.sh
 
 mvn -DskipTests clean install
 
+cfdf_server_name=cfdf
 
 # the first thing we should install is the
 # Cloud Foundry Spring Cloud Data Flow service
@@ -18,7 +19,7 @@ function cfdf(){
     server_mysql=cfdf-mysql
     server_rabbit=cfdf-rabbit
 
-    app_name=cfdf
+    app_name=$1
 
     cf d -f $app_name && echo "deleted existing Spring Cloud Data Flow Cloud Foundry Server."
 
@@ -67,7 +68,11 @@ function cfdf(){
     cf start $app_name
 }
 
-cfdf
+# things to do:
+# setup a dataflow-resources app that simply serves up the definition of the custom app definitions.
+# It could be a trivial
+
+cfdf $cfdf_server_name
 
 
 #

@@ -1,0 +1,9 @@
+---
+applications:
+- name: dataflow-server-definitions
+  memory: 256MB
+  instances: 1
+  host: server-definitions-${random-word}
+  path: target/server-definitions.jar
+  env:
+    SPRING_PROFILES_ACTIVE: cloud
