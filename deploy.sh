@@ -8,6 +8,8 @@ cfdf_server_name=cfdf
 
 function deploy_cfdf(){
 
+    app_name=$1
+
     server_jar=`dirname $0`/cfdf-server.jar
 
     server_redis=cfdf-redis
@@ -19,7 +21,6 @@ function deploy_cfdf(){
     cf ds -f $server_redis
     cf ds -f $server_mysql
 
-    app_name=$1
 
     cf d -f $app_name && echo "deleted existing Spring Cloud Data Flow Cloud Foundry Server."
 
