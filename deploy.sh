@@ -14,6 +14,10 @@ function deploy_cfdf(){
     server_mysql=cfdf-mysql
     server_rabbit=cfdf-rabbit
 
+    cf ds -f $server_rabbit
+    cf ds -f $server_redis
+    cf ds -f $server_mysql 
+
     app_name=$1
 
     cf d -f $app_name && echo "deleted existing Spring Cloud Data Flow Cloud Foundry Server."
@@ -94,8 +98,15 @@ function remote_partitioning(){
     mysql=batch-mysql
     rmq=batch-rabbitmq
 
-    cf s | grep $mysql     || cf cs p-mysql 100mb $mysql
-    cf s | grep $rmq       || cf cs cloudamqp lemur $rmq
+    # reset..
+    cf d -f partition-master
+    cf d -f partition-worker
+    cf ds -f $mysql
+    cf ds -f $rmq
+
+    # deploy..
+    cf cs p-mysql 100mb $mysql
+    cf cs cloudamqp lemur $rmq
 
     cd ${integration}/remote-partitioning
     cf push -f manifest-leader.yml
