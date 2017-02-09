@@ -1,5 +1,6 @@
 package demo;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpMethod.GET;
 
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = ClientConfiguration.class)
 public class RemotePartitionIntegrationTest {

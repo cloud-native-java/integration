@@ -115,7 +115,6 @@ function remote_partitioning(){
     cf push -f manifest-worker.yml
 }
 
-
 function activiti() {
 
     cd ${integration}/activiti-integration ;
@@ -137,7 +136,7 @@ function activiti() {
     cf push -f manifest-worker.yml
 }
 
-#activiti
+activiti
 #server_definitions
 #dataflow
 #remote_partitioning
