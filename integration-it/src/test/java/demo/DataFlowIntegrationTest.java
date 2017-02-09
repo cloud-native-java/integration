@@ -2,7 +2,6 @@ package demo;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cloudfoundry.client.lib.rest.CloudControllerClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +22,6 @@ public class DataFlowIntegrationTest {
 	@Autowired
 	private DataFlowTemplate df;
 
-	@Autowired
-	private CloudControllerClient cf;
-
 	private Log log = LogFactory.getLog(getClass());
 
 	List<String> appDefinitions() {
@@ -38,8 +34,6 @@ public class DataFlowIntegrationTest {
 				.ifPresent(apps::add);
 		return apps;
 	}
-
-
 
 	@Test
 	public void dataFlowIsFlowing() throws Exception {

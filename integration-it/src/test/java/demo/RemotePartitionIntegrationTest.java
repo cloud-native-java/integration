@@ -44,14 +44,11 @@ public class RemotePartitionIntegrationTest {
 					Map<String, Number> status =
 							this.restTemplate
 									.exchange(pm + "/status", GET, null,
-											new ParameterizedTypeReference<Map<String, Number>>() {
-											})
+											new ParameterizedTypeReference<Map<String, Number>>() { })
 									.getBody();
 					return status.get("people.count")
 							.equals(status.get("new_people.count"));
 				});
-
 		assertTrue(optional.orElse(false));
-
 	}
 }
