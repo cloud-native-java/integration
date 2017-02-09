@@ -11,6 +11,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -41,7 +43,7 @@ public class ActivitiIntegrationTest {
 	@Test
 	public void testDistributedWorkflows() throws Throwable {
 
-			boolean endTimeExists =
+		boolean endTimeExists =
 				this.helper.uriFor("activiti-leader").map(al -> {
 
 					ResponseEntity<Map<String, String>> entity =
@@ -56,18 +58,23 @@ public class ActivitiIntegrationTest {
 					String processInstanceId = entity.getBody().get("processInstanceId");
 
 					try {
-						return retryTemplate.execute(retryContext -> {
-							String url = al + "/history/historic-process-instances/" + processInstanceId;
-							Map<String, Object> instanceInformation =
-									restTemplate.exchange(url, HttpMethod.GET, null,
-											new ParameterizedTypeReference<Map<String, Object>>() {
-											}).getBody();
+						RetryCallback<Boolean, RuntimeException> rt =
+								new RetryCallback<Boolean, RuntimeException>() {
+									@Override
+									public Boolean doWithRetry(RetryContext retryContext) throws RuntimeException {
+										String url = al + "/history/historic-process-instances/" + processInstanceId;
+										Map<String, Object> instanceInformation =
+												restTemplate.exchange(url, HttpMethod.GET, null,
+														new ParameterizedTypeReference<Map<String, Object>>() {
+														}).getBody();
 
-							if (instanceInformation.get("endTime") != null) {
-								return true;
-							}
-							throw new RuntimeException("the endTime attribute was null");
-						}, retryContext -> false);
+										if (instanceInformation.get("endTime") != null) {
+											return true;
+										}
+										throw new RuntimeException("the endTime attribute was null");
+									}
+								};
+						return retryTemplate.execute(rt, retryContext -> false);
 
 					} catch (Throwable throwable) {
 						throw new RuntimeException(throwable);
