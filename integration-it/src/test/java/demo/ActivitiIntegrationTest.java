@@ -1,5 +1,7 @@
 package demo;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,8 +64,13 @@ public class ActivitiIntegrationTest {
 					try {
 						RetryCallback<Boolean, RuntimeException> rt =
 								new RetryCallback<Boolean, RuntimeException>() {
+
+									private Log log = LogFactory.getLog(getClass());
+
 									@Override
 									public Boolean doWithRetry(RetryContext retryContext) throws RuntimeException {
+
+
 										String url = al + "/history/historic-process-instances/" + processInstanceId;
 										Map<String, Object> instanceInformation =
 												restTemplate.exchange(url, HttpMethod.GET, null,
@@ -71,8 +78,10 @@ public class ActivitiIntegrationTest {
 														}).getBody();
 
 										if (instanceInformation.get("endTime") != null) {
+											log.info("endTime was not null..");
 											return true;
 										}
+										log.info("endTime was null..");
 										throw new RuntimeException("the endTime attribute was null");
 									}
 								};
