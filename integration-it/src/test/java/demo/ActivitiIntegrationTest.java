@@ -40,7 +40,8 @@ public class ActivitiIntegrationTest {
 
 	@Test
 	public void testDistributedWorkflows() throws Throwable {
-		boolean endTimeExists =
+
+			boolean endTimeExists =
 				this.helper.uriFor("activiti-leader").map(al -> {
 
 					ResponseEntity<Map<String, String>> entity =
