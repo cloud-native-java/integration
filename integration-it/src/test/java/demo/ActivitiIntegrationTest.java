@@ -1,8 +1,7 @@
 package demo;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
@@ -22,16 +23,20 @@ import java.util.Map;
 @SpringBootTest(classes = ClientConfiguration.class)
 public class ActivitiIntegrationTest {
 
-	@Autowired
-	private CloudFoundryHelper helper;
-
 	private final RestTemplate restTemplate = new RestTemplateBuilder()
 			.basicAuthorization("operator", "operator")
 			.build();
 
 	private final RetryTemplate retryTemplate = new RetryTemplate();
 
-	private Log log = LogFactory.getLog(getClass());
+	@Autowired
+	private CloudFoundryHelper helper;
+
+	@Before
+	public void before() throws Throwable {
+		this.retryTemplate.setBackOffPolicy(new ExponentialBackOffPolicy());
+		this.retryTemplate.setRetryPolicy(new TimeoutRetryPolicy());
+	}
 
 	@Test
 	public void testDistributedWorkflows() throws Throwable {
@@ -44,34 +49,28 @@ public class ActivitiIntegrationTest {
 									this.restTemplate.exchange(al + "/start", HttpMethod.GET, null,
 											new ParameterizedTypeReference<Map<String, String>>() {
 											});
-
 							Assert.assertEquals(entity.getStatusCode(), (HttpStatus.OK));
 							String processInstanceId = entity.getBody().get("processInstanceId");
+							try {
+								return
+										retryTemplate.execute(retryContext -> {
 
-							int attempts = 0;
-							log.info("processInstanceId: " + processInstanceId);
-							boolean valid = false;
-							while (attempts++ < 30) {
-								try {
-									log.info("waiting 1 second.");
-									Thread.sleep(1000);
-									String url = al + "/history/historic-process-instances/" + processInstanceId;
-									Map<String, Object> instanceInformation =
-											this.restTemplate
-													.exchange(url, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, Object>>() {
-													})
-													.getBody();
+											String url = al + "/history/historic-process-instances/" + processInstanceId;
+											Map<String, Object> instanceInformation =
+													restTemplate
+															.exchange(url, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, Object>>() {
+															})
+															.getBody();
 
-									if (instanceInformation.get("endTime") != null) {
-										valid = true;
-										break;
-									}
+											if (instanceInformation.get("endTime") != null) {
+												return true;
+											}
+											throw new RuntimeException("the endTime attribute was null");
+										}, retryContext -> false);
 
-								} catch (InterruptedException e) {
-									throw new RuntimeException(e);
-								}
+							} catch (Throwable throwable) {
+								throw new RuntimeException(throwable);
 							}
-							return valid;
 						})
 						.orElse(false);
 
