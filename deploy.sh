@@ -16,13 +16,15 @@ function deploy_cfdf(){
     server_mysql=cfdf-mysql
     server_rabbit=cfdf-rabbit
 
-    cf d -f $app_name
-    cf ds -f $server_rabbit
-    cf ds -f $server_redis
-    cf ds -f $server_mysql
-
+    cf a | grep $app_name | cut -f1 -d\ | while read l ; do
+        cf d -f $l && echo "deleted $l." ;
+    done
 
     cf d -f $app_name && echo "deleted existing Spring Cloud Data Flow Cloud Foundry Server."
+
+    cf s | grep $server_redis   || cf cs rediscloud 100mb $server_redis
+    cf s | grep $server_rabbit  || cf cs cloudamqp lemur $server_rabbit
+    cf s | grep $server_mysql   || cf cs p-mysql 100mb $server_mysql
 
     server_jar_version=1.1.0.RELEASE
     server_jar_version=1.1.0.BUILD-SNAPSHOT
@@ -42,9 +44,6 @@ function deploy_cfdf(){
 
     cf push $app_name -m 2G -k 2G --no-start -p ${server_jar}
 
-    cf s | grep $server_redis   || cf cs rediscloud 30mb $server_redis
-    cf s | grep $server_mysql   || cf cs p-mysql 100mb $server_mysql
-    cf s | grep $server_rabbit  || cf cs cloudamqp lemur $server_rabbit
 
     cf bind-service $app_name $server_redis
     cf bind-service $app_name $server_mysql

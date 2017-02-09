@@ -12,7 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 
 @Configuration
-class DataFlowClientConfiguration {
+class ClientConfiguration {
 
 	@Bean
 	CloudFoundryHelper helper(CloudFoundryClient cf) {
