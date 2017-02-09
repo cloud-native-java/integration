@@ -12,6 +12,7 @@
 
         <sequenceFlow id="flow1" sourceRef="theStart" targetRef="sigw"/>
 
+        <!--1-->
         <serviceTask id="sigw" name="Delegate to Spring Integration" activiti:delegateExpression="#{gateway}"/>
 
         <sequenceFlow id="scriptFlow" sourceRef="sigw" targetRef="confirmMovementTask"/>
