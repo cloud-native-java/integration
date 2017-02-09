@@ -40,41 +40,39 @@ public class ActivitiIntegrationTest {
 
 	@Test
 	public void testDistributedWorkflows() throws Throwable {
-
 		boolean endTimeExists =
-				this.helper.uriFor("activiti-leader")
-						.map(al -> {
+				this.helper.uriFor("activiti-leader").map(al -> {
 
-							ResponseEntity<Map<String, String>> entity =
-									this.restTemplate.exchange(al + "/start", HttpMethod.GET, null,
-											new ParameterizedTypeReference<Map<String, String>>() {
-											});
-							Assert.assertEquals(entity.getStatusCode(), (HttpStatus.OK));
-							String processInstanceId = entity.getBody().get("processInstanceId");
-							try {
-								return
-										retryTemplate.execute(retryContext -> {
+					ResponseEntity<Map<String, String>> entity =
+							this.restTemplate.exchange(al + "/start",
+									HttpMethod.GET,
+									null,
+									new ParameterizedTypeReference<Map<String, String>>() {
+									});
 
-											String url = al + "/history/historic-process-instances/" + processInstanceId;
-											Map<String, Object> instanceInformation =
-													restTemplate
-															.exchange(url, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, Object>>() {
-															})
-															.getBody();
+					Assert.assertEquals(entity.getStatusCode(), (HttpStatus.OK));
 
-											if (instanceInformation.get("endTime") != null) {
-												return true;
-											}
-											throw new RuntimeException("the endTime attribute was null");
-										}, retryContext -> false);
+					String processInstanceId = entity.getBody().get("processInstanceId");
 
-							} catch (Throwable throwable) {
-								throw new RuntimeException(throwable);
+					try {
+						return retryTemplate.execute(retryContext -> {
+							String url = al + "/history/historic-process-instances/" + processInstanceId;
+							Map<String, Object> instanceInformation =
+									restTemplate.exchange(url, HttpMethod.GET, null,
+											new ParameterizedTypeReference<Map<String, Object>>() {
+											}).getBody();
+
+							if (instanceInformation.get("endTime") != null) {
+								return true;
 							}
-						})
-						.orElse(false);
+							throw new RuntimeException("the endTime attribute was null");
+						}, retryContext -> false);
 
-		Assert.assertTrue("the end time is nigh (or, at least, it should be)!",
-				endTimeExists);
+					} catch (Throwable throwable) {
+						throw new RuntimeException(throwable);
+					}
+				})
+						.orElse(false);
+		Assert.assertTrue("the end time is nigh (or, at least, it should be)!", endTimeExists);
 	}
 }
