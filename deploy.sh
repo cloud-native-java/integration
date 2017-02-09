@@ -70,7 +70,7 @@ function deploy_cfdf(){
 
 
 
-mvn -DskipTests clean install
+#mvn -DskipTests clean install
 integration=$(cd `dirname $0` &&  pwd  );
 
 function server_definitions(){
@@ -140,7 +140,7 @@ function activiti() {
     cf push -f manifest-worker.yml
 }
 
-activiti
+#activiti
 #server_definitions
 #dataflow
 #remote_partitioning
