@@ -37,6 +37,8 @@ public class ActivitiIntegrationTest {
 	@Autowired
 	private CloudFoundryHelper helper;
 
+	private Log log = LogFactory.getLog(getClass());
+
 	@Before
 	public void before() throws Throwable {
 		this.retryTemplate.setBackOffPolicy(new ExponentialBackOffPolicy());
@@ -50,22 +52,32 @@ public class ActivitiIntegrationTest {
 		boolean endTimeExists =
 				this.helper.uriFor("activiti-leader").map(al -> {
 
-					ResponseEntity<Map<String, String>> entity =
-							this.restTemplate.exchange(al + "/start",
-									HttpMethod.GET,
-									null,
-									new ParameterizedTypeReference<Map<String, String>>() {
-									});
 
-					Assert.assertEquals(entity.getStatusCode(), (HttpStatus.OK));
+					RetryCallback<String, RuntimeException> pidRetryCallback =
+							new RetryCallback<String, RuntimeException>() {
+								@Override
+								public String doWithRetry(RetryContext retryContext) throws RuntimeException {
 
-					String processInstanceId = entity.getBody().get("processInstanceId");
+									String url = al + "/start";
+									log.info("calling " + url + ".");
+
+									ResponseEntity<Map<String, String>> entity =
+											restTemplate.exchange(url,
+													HttpMethod.GET,
+													null,
+													new ParameterizedTypeReference<Map<String, String>>() {
+													});
+
+									Assert.assertEquals(entity.getStatusCode(), HttpStatus.OK);
+									return entity.getBody().get("processInstanceId");
+								}
+							};
+
+					String processInstanceId = retryTemplate.execute(pidRetryCallback);
 
 					try {
 						RetryCallback<Boolean, RuntimeException> rt =
 								new RetryCallback<Boolean, RuntimeException>() {
-
-									private Log log = LogFactory.getLog(getClass());
 
 									@Override
 									public Boolean doWithRetry(RetryContext retryContext) throws RuntimeException {
