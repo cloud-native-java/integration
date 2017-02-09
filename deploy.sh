@@ -141,6 +141,6 @@ function activiti() {
 }
 
 activiti
-#server_definitions
-#dataflow
-#remote_partitioning
+server_definitions
+dataflow
+remote_partitioning

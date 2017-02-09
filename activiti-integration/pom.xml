@@ -18,9 +18,13 @@
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
         </dependency>
+        <!--   <dependency>
+               <groupId>mysql</groupId>
+               <artifactId>mysql-connector-java</artifactId>
+           </dependency>-->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
         </dependency>
 
         <dependency>
@@ -29,11 +33,11 @@
             <version>${activiti-spring-boot.version}</version>
         </dependency>
 
-      <!--  <dependency>
-            <groupId>org.activiti</groupId>
-            <version>${activiti-spring-boot.version}</version>
-            <artifactId>activiti-spring-boot-starter-integration</artifactId>
-        </dependency>-->
+        <!--  <dependency>
+              <groupId>org.activiti</groupId>
+              <version>${activiti-spring-boot.version}</version>
+              <artifactId>activiti-spring-boot-starter-integration</artifactId>
+          </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
