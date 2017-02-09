@@ -16,6 +16,7 @@ import org.springframework.messaging.Message;
 @Profile(Profiles.LEADER)
 class LeaderConfiguration {
 
+	// <1>
 	@Bean
 	ActivityBehavior gateway(LeaderChannels channels) {
 		return new ReceiveTaskActivityBehavior() {
@@ -32,6 +33,7 @@ class LeaderConfiguration {
 		};
 	}
 
+	// <2>
 	@Bean
 	IntegrationFlow repliesFlow(LeaderChannels channels,
 	                            ProcessEngine engine) {

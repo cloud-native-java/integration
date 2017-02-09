@@ -17,6 +17,7 @@
 
         <sequenceFlow id="scriptFlow" sourceRef="sigw" targetRef="confirmMovementTask"/>
 
+        <!--2-->
         <scriptTask id="confirmMovementTask" name="Execute script" scriptFormat="groovy">
             <script>
                 println 'Moving on!'
