@@ -14,11 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -37,7 +38,8 @@ public class ActivitiIntegrationTest {
 	@Before
 	public void before() throws Throwable {
 		this.retryTemplate.setBackOffPolicy(new ExponentialBackOffPolicy());
-		this.retryTemplate.setRetryPolicy(new TimeoutRetryPolicy());
+		this.retryTemplate.setRetryPolicy(new SimpleRetryPolicy(20,
+				Collections.singletonMap(RuntimeException.class, true)));
 	}
 
 	@Test
