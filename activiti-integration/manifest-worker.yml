@@ -1,14 +1,13 @@
 ---
 applications:
-- name: partition-worker
-  instances: 4
-  memory: 1GB
-  host: partition-worker-${random-word}
-  path: target/remote-partitioning.jar
+- name: activiti-worker
+  instances: 2
+  host: activiti-worker-${random-word}
   buildpack: https://github.com/cloudfoundry/java-buildpack.git
+  path: target/activiti-integration.jar
   services:
-    - batch-mysql
-    - batch-rmq
+    - activiti-mysql
+    - activiti-rabbitmq
   env:
     DEBUG: "true"
     SPRING_PROFILES_ACTIVE: worker, cloud

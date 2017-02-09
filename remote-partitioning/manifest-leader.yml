@@ -1,13 +1,14 @@
 ---
 applications:
-- name: partition-master
-  memory: 1G
+- name: partition-leader
   instances: 1
-  host: partition-master-${random-word}
+  memory: 1GB
+  host: partition-leader-${random-word}
   path: target/remote-partitioning.jar
+  buildpack: https://github.com/cloudfoundry/java-buildpack.git
   services:
     - batch-mysql
-    - batch-rabbitmq
+    - batch-rmq
   env:
     DEBUG: "true"
     SERVER_PORT: 80

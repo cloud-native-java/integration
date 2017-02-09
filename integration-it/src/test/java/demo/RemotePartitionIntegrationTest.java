@@ -24,10 +24,9 @@ public class RemotePartitionIntegrationTest {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-
 	@Test
 	public void remotePartitionBatchJob() {
-		Optional<Boolean> optional = this.helper.uriFor("partition-master")
+		Optional<Boolean> optional = this.helper.uriFor("partition-leader")
 				.map(pm -> {
 					String migrationJobUrl = pm + "/migrate";
 					ResponseEntity<Map<String, String>> jsonResponse =

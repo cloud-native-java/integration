@@ -8,25 +8,25 @@
 
     <process id="asyncProcess">
 
-        <startEvent id="theStart"/>
+        <startEvent id="start"/>
 
-        <sequenceFlow id="flow1" sourceRef="theStart" targetRef="sigw"/>
+        <sequenceFlow id="f1" sourceRef="start" targetRef="spring-gateway"/>
 
         <!--1-->
-        <serviceTask id="sigw" name="Delegate to Spring Integration" activiti:delegateExpression="#{gateway}"/>
+        <serviceTask id="spring-gateway" activiti:delegateExpression="#{gateway}"/>
 
-        <sequenceFlow id="scriptFlow" sourceRef="sigw" targetRef="confirmMovementTask"/>
+        <sequenceFlow id="f2" sourceRef="spring-gateway" targetRef="confirm-movement"/>
 
         <!--2-->
-        <scriptTask id="confirmMovementTask" name="Execute script" scriptFormat="groovy">
+        <scriptTask id="confirm-movement" scriptFormat="groovy">
             <script>
-                println 'Moving on!'
+                println 'Moving on..'
             </script>
         </scriptTask>
 
-        <sequenceFlow id="flow2" sourceRef="confirmMovementTask" targetRef="theEnd"/>
+        <sequenceFlow id="f3" sourceRef="confirm-movement" targetRef="end"/>
 
-        <endEvent id="theEnd"/>
+        <endEvent id="end"/>
 
     </process>
 

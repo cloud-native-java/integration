@@ -10,7 +10,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>configuration-it</artifactId>
+    <artifactId>integration-it</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -20,6 +20,10 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-cloudfoundry</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

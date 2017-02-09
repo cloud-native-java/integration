@@ -93,15 +93,42 @@ function dataflow(){
 
 function remote_partitioning(){
 
+    cd ${integration}/remote-partitioning
+
     # deploys a partitioned batch
     # job across 4 cluster nodes.
 
     mysql=batch-mysql
-    rmq=batch-rabbitmq
+    rmq=batch-rmq
 
     # reset..
     cf d -f partition-master
     cf d -f partition-worker
+
+    # deploy..
+    cf s | grep ${mysql}  || echo "looking for MySQL instance." ;
+
+    exit 0
+
+    cf s | grep ${mysql}  || cf cs p-mysql 100mb $mysql
+    cf s | grep ${rmq}    || cf cs cloudamqp lemur $rmq
+
+
+    cf push -f manifest-leader.yml
+    cf push -f manifest-worker.yml
+}
+
+
+function activiti() {
+
+    cd ${integration}/activiti-integration ;
+
+    mysql=activiti-mysql
+    rmq=activiti-rabbitmq
+
+    # reset..
+    cf d -f activiti-leader
+    cf d -f activiti-worker
     cf ds -f $mysql
     cf ds -f $rmq
 
@@ -109,55 +136,11 @@ function remote_partitioning(){
     cf cs p-mysql 100mb $mysql
     cf cs cloudamqp lemur $rmq
 
-    cd ${integration}/remote-partitioning
     cf push -f manifest-leader.yml
     cf push -f manifest-worker.yml
 }
 
-server_definitions
-dataflow
-remote_partitioning
-
-
-#
-#as=auth-service
-#res=service-registry
-#gs=greetings-service
-#gc=edge-service
-#h5=html5-client
-#
-#cf d -f $res
-#cf d -f $as
-#cf d -f $gs
-#cf d -f $gc
-#cf d -f $h5
-#
-## EUREKA SERVICE
-#cf ds -f $res
-#cf a | grep $res && cf d -f $res
-#deploy_app $res
-#deploy_service $res
-#
-## AUTH SERVICE
-#as_db=auth-service-pgsql
-#
-#cf ds -f $as
-#cf d -f $as
-#cf ds -f ${as_db}
-#
-#cf cs elephantsql turtle ${as_db}
-#
-#deploy_app $as
-#deploy_service $as
-#
-### GREETINGS SERVICE
-#cf d -f $gs
-#deploy_app $gs
-#
-### GREETINGS CLIENT
-#cf d -f $gc
-#deploy_app $gc
-#
-### HTML5 CLIENT
-#cf d -f $h5
-#deploy_app $h5
+activiti
+#server_definitions
+#dataflow
+#remote_partitioning
