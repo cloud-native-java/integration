@@ -4,7 +4,7 @@ set -e
 
 source $BUILD_DIRECTORY/utils/cf-common.sh
 
-cfdf_server_name=cfdf
+integration=$(cd `dirname $0` &&  pwd  );
 
 function deploy_cfdf(){
 
@@ -70,8 +70,6 @@ function deploy_cfdf(){
 
 
 
-#mvn -DskipTests clean install
-integration=$(cd `dirname $0` &&  pwd  );
 
 function server_definitions(){
 
@@ -84,9 +82,8 @@ function server_definitions(){
 }
 
 function dataflow(){
-
     # deploys the Spring Cloud Data Flow Cloud Foundry server
-
+    cfdf_server_name=cfdf
     cd ${integration}
     deploy_cfdf ${cfdf_server_name}
 }
