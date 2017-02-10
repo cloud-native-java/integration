@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
+import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,11 +23,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
@@ -35,11 +35,11 @@ import java.util.stream.Stream;
 @SpringBootTest(classes = DataFlowIT.Config.class)
 public class DataFlowIT {
 
+	private Log log = LogFactory.getLog(getClass());
+
 	@SpringBootApplication
 	public static class Config {
 	}
-
-	private Log log = LogFactory.getLog(getClass());
 
 	@Autowired
 	private CloudFoundryOperations cloudFoundryOperations;
@@ -47,11 +47,12 @@ public class DataFlowIT {
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
 
+	private String appName = "cfdf";
+
 	@Before
-	public void before() throws Throwable {
+	public void deployDataFlowServer() throws Throwable {
 
 		String serverRedis = "cfdf-redis", serverMysql = "cfdf-mysql", serverRabbit = "cfdf-rabbit";
-		String appName = "cfdf";
 
 		this.cloudFoundryService.destroyApplicationIfExists(appName);
 		Stream.of("rediscloud 100mb " + serverRedis,
@@ -71,8 +72,7 @@ public class DataFlowIT {
 			java.nio.file.Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
 		}
 
-		this.log.info("downloaded Data Flow server to " +
-				targetFile.toFile().getAbsolutePath() + ".");
+		this.log.info("downloaded Data Flow server to " + targetFile.toFile().getAbsolutePath() + ".");
 
 		int twoG = 1024 * 2;
 		this.cloudFoundryOperations.applications()
@@ -88,7 +88,6 @@ public class DataFlowIT {
 						.build())
 				.block();
 		log.info("pushed (but didn't start) the Data Flow server");
-
 
 		Map<String, String> env = new ConcurrentHashMap<>();
 
@@ -110,7 +109,7 @@ public class DataFlowIT {
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_INSTANCES", "1");
 
 		env.entrySet()
-				// TODO restore parallelStream()
+				.parallelStream()
 				.forEach((e) -> {
 					this.cloudFoundryOperations
 							.applications()
@@ -122,10 +121,9 @@ public class DataFlowIT {
 									.build())
 							.block();
 
-					log.info("set environment variable for " + appName + ": "
-							+ e.getKey() + '=' + e.getValue());
-
+					log.info("set environment variable for " + appName + ": " + e.getKey() + '=' + e.getValue());
 				});
+
 		log.info("set all " + env.size() + " environment variables.");
 
 		this.cloudFoundryOperations
@@ -133,58 +131,87 @@ public class DataFlowIT {
 				.start(StartApplicationRequest.builder().name(appName).build())
 				.block();
 
-		log.info("started the Spring Cloud " +
-				"Data Flow Cloud Foundry server.");
-
-
-	}
-
-	private DataFlowTemplate dataFlowTemplate(
-			String cfDfServerName) throws Exception {
-		return
-				Optional.ofNullable(this.cloudFoundryService.urlForApplication(cfDfServerName))
-						.map(u -> new DataFlowTemplate(URI.create(u), new RestTemplate()))
-						.orElseThrow(() -> new RuntimeException(
-								"can't find a URI for the Spring Cloud Data Flow server!"));
+		log.info("started the Spring Cloud Data Flow Cloud Foundry server.");
 	}
 
 	@Test
-	public void deployStreamsAndTasksToDataFlowServer()
-			throws Throwable {
+	public void deployTasksAndStreams() throws Exception {
+		DataFlowTemplate df = this.dataFlowTemplate(
+				this.cloudFoundryService.urlForApplication(this.appName));
 
-//		this.dataFlowTemplate.streamOperations().list().forEach(System.out::println );
+		appDefinitions()
+				.parallelStream()
+				.forEach(u -> {
+					log.info("importing " + u);
+					df.appRegistryOperations().importFromResource(u, true);
+					log.info("imported " + u);
+				});
 
-		/*
+		Arrays.asList(deployStreams(df), deployTasks(df))
+				.parallelStream()
+				.map(r -> r)
+				.forEach(Runnable::run);
+		log.info("deployed tasks and streams.");
+	}
 
-    [ -f ${server_jar} ] || wget -O ${server_jar} "${server_jar_url}"
-    [ -f ${server_jar} ] && echo "cached ${server_jar} locally."
+	private Runnable deployStreams(DataFlowTemplate df) {
+		return () -> {
+			Map<String, String> streams = new HashMap<>();
+			streams.put("ttl", "time | brackets | log");
 
-    cf push $app_name -m 2G -k 2G --no-start -p ${server_jar}
+			log.info("going to deploy " + streams.size() + " new stream(s).");
+			streams.entrySet()
+					.parallelStream()
+					.forEach(stream -> {
+						String streamName = stream.getKey();
 
+						StreamSupport.stream(Spliterators.spliteratorUnknownSize(df.streamOperations().list().iterator(),
+								Spliterator.ORDERED), false)
+								.filter(sdr -> sdr.getName().equals(streamName)).forEach(tdr -> {
+							log.info("deploying stream " + streamName);
+							df.streamOperations().destroy(streamName);
+						});
 
-    cf bind-service $app_name $server_redis
-    cf bind-service $app_name $server_mysql
+						df.streamOperations()
+								.createStream(streamName, stream.getValue(), true);
+					});
+		};
+	}
 
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION false
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL https://api.run.pivotal.io
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORG $CF_ORG
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SPACE $CF_SPACE
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN cfapps.io
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_SERVICES $server_rabbit
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_TASK_SERVICES $server_mysql
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_USERNAME $CF_USER
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_PASSWORD $CF_PASSWORD
+	private Runnable deployTasks(DataFlowTemplate df) {
+		return () -> {
+			Map<String, String> tasks = new HashMap<>();
+			tasks.put("my-simple-task", "simple-task");
 
-    cf set-env $app_name MAVEN_REMOTE_REPOSITORIES_LR_URL https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-release
-    cf set-env $app_name MAVEN_REMOTE_REPOSITORIES_LS_URL https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-snapshot
-    cf set-env $app_name MAVEN_REMOTE_REPOSITORIES_PR_URL https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-release
-    cf set-env $app_name MAVEN_REMOTE_REPOSITORIES_PS_URL https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-snapshot
+			log.info("going to deploy " + tasks.size() + " new task(s).");
+			tasks.entrySet()
+					.parallelStream()
+					.forEach(task -> {
 
-    cf set-env $app_name SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_INSTANCES 1
+						String taskName = task.getKey();
 
-    cf start $app_name*/
+						StreamSupport.stream(Spliterators.spliteratorUnknownSize(df.taskOperations().list().iterator(),
+								Spliterator.ORDERED), false)
+								.filter(tdr -> tdr.getName().equals(taskName)).forEach(tdr -> {
+							log.info("destroying task " + taskName);
+							df.taskOperations().destroy(taskName);
+						});
 
+						log.info("deploying task " + taskName);
+						TaskOperations to = df.taskOperations();
+						to.create(taskName, task.getValue());
+						to.launch(taskName,
+								Collections.emptyMap(),
+								Collections.singletonList(System.currentTimeMillis() + ""));
+					});
+		};
+	}
 
+	private DataFlowTemplate dataFlowTemplate(String cfDfServerName) throws Exception {
+		return Optional.ofNullable(this.cloudFoundryService.urlForApplication(cfDfServerName))
+				.map(u -> new DataFlowTemplate(URI.create(u), new RestTemplate()))
+				.orElseThrow(() -> new RuntimeException(
+						"can't find a URI for the Spring Cloud Data Flow server!"));
 	}
 
 	private String serverJarUrl() {
@@ -198,4 +225,16 @@ public class DataFlowIT {
 				.replace("${server_jar_version}", serverJarVersion);
 	}
 
+	private List<String> appDefinitions() {
+		List<String> apps = new ArrayList<>();
+		apps.add("http://repo.spring.io/libs-release-local/org/springframework/cloud/task/app/spring-cloud-task-app-descriptor/Addison.RELEASE/spring-cloud-task-app-descriptor-Addison.RELEASE.task-apps-maven");
+		apps.add("http://repo.spring.io/libs-release/org/springframework/cloud/stream/app/spring-cloud-stream-app-descriptor/Avogadro.SR1/spring-cloud-stream-app-descriptor-Avogadro.SR1.stream-apps-rabbit-maven");
+
+		Optional.ofNullable(this.cloudFoundryService.urlForApplication("server-definitions"))
+				.map(x -> x + "/dataflow-example-apps.properties")
+				.ifPresent(apps::add);
+
+		apps.forEach(x -> log.info("registering: " + x));
+		return apps;
+	}
 }
