@@ -18,11 +18,13 @@ import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -49,9 +51,9 @@ public class DataFlowIT {
 
 	private String appName = "cfdf";
 
-	@Before
-	public void deployDataFlowServer() throws Throwable {
+	private void deployDataFlowServer() throws Throwable {
 
+		// deploy the DF server
 		String serverRedis = "cfdf-redis", serverMysql = "cfdf-mysql", serverRabbit = "cfdf-rabbit";
 
 		this.cloudFoundryService.destroyApplicationIfExists(appName);
@@ -128,10 +130,26 @@ public class DataFlowIT {
 
 		this.cloudFoundryOperations
 				.applications()
-				.start(StartApplicationRequest.builder().name(appName).build())
+				.start(StartApplicationRequest
+						.builder()
+						.stagingTimeout(Duration.ofMinutes(10))
+						.startupTimeout(Duration.ofMinutes(10))
+						.name(appName).build())
 				.block();
 
 		log.info("started the Spring Cloud Data Flow Cloud Foundry server.");
+	}
+
+	@Before
+	public void deploy() throws Throwable {
+		deployServiceDefinitions();
+		deployDataFlowServer();
+	}
+
+	private void deployServiceDefinitions() {
+		File projectFolder = new File(new File("."), "../dataflow/server-definitions");
+		File jar = new File(projectFolder, "manifest.yml");
+		this.cloudFoundryService.pushApplicationUsingManifest(jar);
 	}
 
 	@Test
