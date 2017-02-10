@@ -32,7 +32,8 @@ public class ActivitiIntegrationTest {
 			.basicAuthorization("operator", "operator")
 			.build();
 
-	private final RetryTemplate retryTemplate = new RetryTemplate();
+	@Autowired
+	private RetryTemplate retryTemplate;
 
 	@Autowired
 	private CloudFoundryHelper helper;
@@ -51,7 +52,6 @@ public class ActivitiIntegrationTest {
 
 		boolean endTimeExists =
 				this.helper.uriFor("activiti-leader").map(al -> {
-
 
 					RetryCallback<String, RuntimeException> pidRetryCallback =
 							new RetryCallback<String, RuntimeException>() {

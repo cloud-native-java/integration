@@ -1,6 +1,6 @@
 ---
 applications:
-- name: dataflow-server-definitions
+- name: server-definitions
   memory: 256MB
   instances: 1
   host: server-definitions-${random-word}

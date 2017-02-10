@@ -6,17 +6,31 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Collections;
 
 @Configuration
 class ClientConfiguration {
 
 	@Bean
-	CloudFoundryHelper helper(CloudFoundryClient cf) {
-		return new CloudFoundryHelper(cf);
+	RetryTemplate retryTemplate() {
+		RetryTemplate rt = new RetryTemplate();
+		rt.setBackOffPolicy(new ExponentialBackOffPolicy());
+		rt.setRetryPolicy(new SimpleRetryPolicy(20,
+				Collections.singletonMap(RuntimeException.class, true)));
+		return rt;
+	}
+
+	@Bean
+	CloudFoundryHelper helper(CloudFoundryClient cf,
+	                          RetryTemplate retryTemplate) {
+		return new CloudFoundryHelper(cf, retryTemplate);
 	}
 
 	@Bean

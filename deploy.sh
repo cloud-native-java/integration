@@ -97,7 +97,7 @@ function remote_partitioning(){
 
     mysql=batch-mysql
     rmq=batch-rmq
-    
+
     # reset..
     cf d -f partition-leader
     cf d -f partition-worker
