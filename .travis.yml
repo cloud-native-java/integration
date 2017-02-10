@@ -7,11 +7,12 @@ cache:
   directories:
     - $HOME/.m2/repository/
 
-install:
-  - rm -rf $HOME/.m2/repository/ 
-  - git clone https://github.com/cloud-native-java/build.git
-  - ./build/install.sh $CF_USER $CF_PASSWORD $CF_ORG $CF_SPACE
-
+#install:
+#  - git clone https://github.com/cloud-native-java/build.git
+#  - ./build/install.sh $CF_USER $CF_PASSWORD $CF_ORG $CF_SPACE
+# -DskipITs
 script:
-  - ./build/script.sh $CF_USER $CF_PASSWORD $CF_ORG $CF_SPACE
+  -   mvn verify -P integration-test
+#  - mvn test && mvn verify -P integration-test && mvn -DskipTests deploy
+
 

@@ -1,57 +1,88 @@
-package demo;
+package integration;
 
+import cnj.CloudFoundryService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.Map;
+import java.io.File;
+import java.util.Arrays;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = ClientConfiguration.class)
-public class ActivitiIntegrationTest {
+@SpringBootTest(classes = ActivitiIT.Config.class)
+@RunWith(SpringRunner.class)
+public class ActivitiIT {
+
+	@SpringBootApplication
+	public static class Config {
+	}
 
 	private final RestTemplate restTemplate = new RestTemplateBuilder()
 			.basicAuthorization("operator", "operator")
 			.build();
 
 	@Autowired
-	private RetryTemplate retryTemplate;
-
-	@Autowired
-	private CloudFoundryHelper helper;
+	private CloudFoundryService cloudFoundryService;
 
 	private Log log = LogFactory.getLog(getClass());
 
 	@Before
 	public void before() throws Throwable {
-		this.retryTemplate.setBackOffPolicy(new ExponentialBackOffPolicy());
-		this.retryTemplate.setRetryPolicy(new SimpleRetryPolicy(20,
-				Collections.singletonMap(RuntimeException.class, true)));
 	}
 
 	@Test
 	public void testDistributedWorkflows() throws Throwable {
 
+
+		// deploy the activiti application, twice, to CF as a leader and a worker node.
+
+		File activitiIntegrationFolder = new File(new File("."), "../activiti-integration");
+		log.info("activiti folder: " + activitiIntegrationFolder.getAbsolutePath());
+		Arrays.asList(activitiIntegrationFolder.listFiles()).forEach(log::info);
+
+		/*String mysql = "activiti-mysql", rmq = "activiti-rabbitmq",
+				leader = "activiti-leader", worker = "activiti-worker";
+
+		Stream.of(leader, worker).forEach(app -> this.cloudFoundryService.destroyApplicationIfExists(app));
+		Stream.of(mysql, rmq).forEach(svc -> this.cloudFoundryService.destroyServiceIfExists(svc));
+
+		this.cloudFoundryService.createService("p-mysql", "100mb", mysql);
+		this.cloudFoundryService.createService("cloudamqp", "lemur", rmq);
+
+*/
+		// invoke an endpoint in the leader
+		//	String urlForApplication = this.cloudFoundryService.urlForApplication("activiti-leader");
+
+/*
+		cd ${integration}/activiti-integration ;
+
+		mysql=activiti-mysql
+		rmq=activiti-rabbitmq
+
+    # reset..
+		cf d -f activiti-leader
+		cf d -f activiti-worker
+		cf ds -f $mysql
+		cf ds -f $rmq
+
+    # deploy..
+		cf cs p-mysql 100mb $mysql
+		cf cs cloudamqp lemur $rmq
+
+		cf push -f manifest-leader.yml
+		cf push -f manifest-worker.yml
+*/
+
+/*
 		boolean endTimeExists =
-				this.helper.uriFor("activiti-leader").map(al -> {
+				this.helper.urlForApplication("activiti-leader").map(al -> {
 
 					RetryCallback<String, RuntimeException> pidRetryCallback =
 							new RetryCallback<String, RuntimeException>() {
@@ -104,6 +135,6 @@ public class ActivitiIntegrationTest {
 					}
 				})
 						.orElse(false);
-		Assert.assertTrue("the end time is nigh (or, at least, it should be)!", endTimeExists);
+		Assert.assertTrue("the end time is nigh (or, at least, it should be)!", endTimeExists);*/
 	}
 }

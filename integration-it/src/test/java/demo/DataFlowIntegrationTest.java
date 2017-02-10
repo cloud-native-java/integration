@@ -1,21 +1,6 @@
 package demo;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
-import org.springframework.cloud.dataflow.rest.client.TaskOperations;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.StreamSupport;
-
+/**
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = ClientConfiguration.class)
 public class DataFlowIntegrationTest {
@@ -126,4 +111,4 @@ public class DataFlowIntegrationTest {
 		cdl.await();
 		log.info("deployed tasks and streams.");
 	}
-}
+} */

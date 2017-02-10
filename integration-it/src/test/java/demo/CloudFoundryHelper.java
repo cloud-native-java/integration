@@ -1,5 +1,5 @@
 package demo;
-
+/*
 import org.cloudfoundry.client.lib.CloudFoundryClient;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
 import org.springframework.retry.RetryCallback;
@@ -40,3 +40,4 @@ class CloudFoundryHelper {
 
 	}
 }
+ */
