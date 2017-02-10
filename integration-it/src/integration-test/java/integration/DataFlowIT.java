@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -78,8 +79,10 @@ public class DataFlowIT {
 				.push(PushApplicationRequest
 						.builder()
 						.application(targetFile)
+						.buildpack("https://github.com/cloudfoundry/java-buildpack.git")
 						.noStart(true)
 						.name(appName)
+						.host("cfdf-" + UUID.randomUUID().toString())
 						.memory(twoG)
 						.diskQuota(twoG)
 						.build())
