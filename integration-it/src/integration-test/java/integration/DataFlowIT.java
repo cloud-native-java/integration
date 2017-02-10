@@ -51,6 +51,38 @@ public class DataFlowIT {
 
 	private String appName = "cfdf";
 
+	@Before
+	public void deploy() throws Throwable {
+		deployServiceDefinitions();
+		deployDataFlowServer();
+	}
+
+	@Test
+	public void deployTasksAndStreams() throws Exception {
+		DataFlowTemplate df = this.dataFlowTemplate(
+				this.cloudFoundryService.urlForApplication(this.appName));
+
+		appDefinitions()
+				.parallelStream()
+				.forEach(u -> {
+					log.info("importing " + u);
+					df.appRegistryOperations().importFromResource(u, true);
+					log.info("imported " + u);
+				});
+
+		Arrays.asList(deployStreams(df), deployTasks(df))
+				.parallelStream()
+				.map(r -> r)
+				.forEach(Runnable::run);
+		log.info("deployed tasks and streams.");
+	}
+
+	private void deployServiceDefinitions() {
+		File projectFolder = new File(new File("."), "../dataflow/server-definitions");
+		File manifestFile = new File(projectFolder, "manifest.yml");
+		this.cloudFoundryService.pushApplicationUsingManifest(manifestFile);
+	}
+
 	private void deployDataFlowServer() throws Throwable {
 
 		// deploy the DF server
@@ -138,38 +170,6 @@ public class DataFlowIT {
 				.block();
 
 		log.info("started the Spring Cloud Data Flow Cloud Foundry server.");
-	}
-
-	@Before
-	public void deploy() throws Throwable {
-		deployServiceDefinitions();
-		deployDataFlowServer();
-	}
-
-	private void deployServiceDefinitions() {
-		File projectFolder = new File(new File("."), "../dataflow/server-definitions");
-		File manifestFile = new File(projectFolder, "manifest.yml");
-		this.cloudFoundryService.pushApplicationUsingManifest(manifestFile);
-	}
-
-	@Test
-	public void deployTasksAndStreams() throws Exception {
-		DataFlowTemplate df = this.dataFlowTemplate(
-				this.cloudFoundryService.urlForApplication(this.appName));
-
-		appDefinitions()
-				.parallelStream()
-				.forEach(u -> {
-					log.info("importing " + u);
-					df.appRegistryOperations().importFromResource(u, true);
-					log.info("imported " + u);
-				});
-
-		Arrays.asList(deployStreams(df), deployTasks(df))
-				.parallelStream()
-				.map(r -> r)
-				.forEach(Runnable::run);
-		log.info("deployed tasks and streams.");
 	}
 
 	private Runnable deployStreams(DataFlowTemplate df) {
