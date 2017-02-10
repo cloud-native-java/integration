@@ -148,8 +148,8 @@ public class DataFlowIT {
 
 	private void deployServiceDefinitions() {
 		File projectFolder = new File(new File("."), "../dataflow/server-definitions");
-		File jar = new File(projectFolder, "manifest.yml");
-		this.cloudFoundryService.pushApplicationUsingManifest(jar);
+		File manifestFile = new File(projectFolder, "manifest.yml");
+		this.cloudFoundryService.pushApplicationUsingManifest(manifestFile);
 	}
 
 	@Test

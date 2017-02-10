@@ -8,12 +8,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpMethod.GET;
@@ -27,6 +30,11 @@ public class RemotePartitioningIT {
 
 	@SpringBootApplication
 	public static class Config {
+
+		@Bean
+		public RestTemplate restTemplate() {
+			return new RestTemplate();
+		}
 	}
 
 	@Autowired
@@ -36,8 +44,17 @@ public class RemotePartitioningIT {
 	private CloudFoundryService cloudFoundryService;
 
 	@Before
-	public void before () throws Throwable {
-
+	public void before() throws Throwable {
+		String mysql = "batch-mysql", rmq = "batch-rmq";
+		Stream.of("p-mysql 100mb " + mysql, "cloudamqp lemur " + rmq)
+				.map(x -> x.split(" "))
+				.forEach(t -> this.cloudFoundryService.createServiceIfMissing(t[0], t[1], t[2]));
+		File projectFolder = new File(new File("."), "../remote-partitioning");
+		File leader = new File(projectFolder, "manifest-leader.yml"),
+				worker = new File(projectFolder, "manifest-worker.yml");
+		Assert.assertTrue(leader.exists() && worker.exists());
+		Stream.of(leader, worker).parallel()
+				.forEach(f -> this.cloudFoundryService.pushApplicationUsingManifest(f));
 	}
 
 	@Test
