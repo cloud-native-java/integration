@@ -7,6 +7,7 @@ import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.PushApplicationRequest;
 import org.cloudfoundry.operations.applications.SetEnvironmentVariableApplicationRequest;
 import org.cloudfoundry.operations.applications.StartApplicationRequest;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
@@ -53,7 +53,7 @@ public class DataFlowIT {
 
 	@Before
 	public void deploy() throws Throwable {
-		deployServiceDefinitions();
+//		deployServiceDefinitions();
 		deployDataFlowServer();
 	}
 
@@ -88,7 +88,7 @@ public class DataFlowIT {
 		// deploy the DF server
 		String serverRedis = "cfdf-redis", serverMysql = "cfdf-mysql", serverRabbit = "cfdf-rabbit";
 
-		this.cloudFoundryService.destroyApplicationIfExists(appName);
+//		this.cloudFoundryService.destroyApplicationIfExists(appName);
 		Stream.of("rediscloud 100mb " + serverRedis,
 				"cloudamqp lemur " + serverRabbit,
 				"p-mysql 100mb " + serverMysql)
@@ -97,16 +97,19 @@ public class DataFlowIT {
 				.forEach(tpl -> this.cloudFoundryService.createServiceIfMissing(tpl[0], tpl[1], tpl[2]));
 
 		String urlForServerJarDistribution = this.serverJarUrl();
-		Path targetFile = Files.createTempFile("cfdf", ".jar");
+		File cfdfJar = new File(System.getProperty("user.home"), "cfdf.jar");
+		Assert.assertTrue(cfdfJar.getParentFile().exists() ||
+				cfdfJar.getParentFile().mkdirs());
 
-		targetFile.toFile().deleteOnExit();
-
-		URI uri = URI.create(urlForServerJarDistribution);
-		try (InputStream inputStream = uri.toURL().openStream()) {
-			java.nio.file.Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
+		Path targetFile = cfdfJar.toPath();
+		if (!cfdfJar.exists()) {
+			URI uri = URI.create(urlForServerJarDistribution);
+			try (InputStream inputStream = uri.toURL().openStream()) {
+				java.nio.file.Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
+			}
+			this.log.info("downloaded Data Flow server to " + targetFile.toFile().getAbsolutePath() + ".");
 		}
-
-		this.log.info("downloaded Data Flow server to " + targetFile.toFile().getAbsolutePath() + ".");
+		log.info("Data Flow Server jar lives at " + cfdfJar.getAbsolutePath());
 
 		int twoG = 1024 * 2;
 		this.cloudFoundryOperations.applications()
@@ -126,15 +129,18 @@ public class DataFlowIT {
 		Map<String, String> env = new ConcurrentHashMap<>();
 
 		// CF authentication
-		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION", "false");
-		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL", "https://api.run.pivotal.io");
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_ORG", System.getenv("CF_ORG"));
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SPACE", System.getenv("CF_SPACE"));
-		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN", "cfapps.io");
-		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_SERVICES", serverRabbit);
-		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_TASK_SERVICES", serverMysql);
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_USERNAME", System.getenv("CF_USER"));
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_PASSWORD", System.getenv("CF_PASSWORD"));
+
+		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_SERVICES", serverRabbit);
+		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_TASK_SERVICES", serverMysql);
+
+		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION", "false");
+		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_URL", "https://api.run.pivotal.io");
+		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_DOMAIN", "cfapps.io");
+
 		env.put("MAVEN_REMOTE_REPOSITORIES_LR_URL", "https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-release");
 		env.put("MAVEN_REMOTE_REPOSITORIES_LS_URL", "https://cloudnativejava.artifactoryonline.com/cloudnativejava/libs-snapshot");
 		env.put("MAVEN_REMOTE_REPOSITORIES_PR_URL", "https://cloudnativejava.artifactoryonline.com/cloudnativejava/plugins-release");
@@ -166,7 +172,8 @@ public class DataFlowIT {
 						.builder()
 						.stagingTimeout(Duration.ofMinutes(10))
 						.startupTimeout(Duration.ofMinutes(10))
-						.name(appName).build())
+						.name(appName)
+						.build())
 				.block();
 
 		log.info("started the Spring Cloud Data Flow Cloud Foundry server.");
