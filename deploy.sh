@@ -97,19 +97,13 @@ function remote_partitioning(){
 
     mysql=batch-mysql
     rmq=batch-rmq
-
+    
     # reset..
-    cf d -f partition-master
+    cf d -f partition-leader
     cf d -f partition-worker
-
-    # deploy..
-    cf s | grep ${mysql}  || echo "looking for MySQL instance." ;
-
-    exit 0
 
     cf s | grep ${mysql}  || cf cs p-mysql 100mb $mysql
     cf s | grep ${rmq}    || cf cs cloudamqp lemur $rmq
-
 
     cf push -f manifest-leader.yml
     cf push -f manifest-worker.yml
