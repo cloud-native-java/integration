@@ -53,7 +53,6 @@ public class DataFlowIT {
 		String appName = "cfdf";
 
 		this.cloudFoundryService.destroyApplicationIfExists(appName);
-
 		Stream.of("rediscloud 100mb " + serverRedis,
 				"cloudamqp lemur " + serverRabbit,
 				"p-mysql 100mb " + serverMysql)
@@ -63,6 +62,9 @@ public class DataFlowIT {
 
 		String urlForServerJarDistribution = this.serverJarUrl();
 		Path targetFile = Files.createTempFile("cfdf", ".jar");
+
+		targetFile.toFile().deleteOnExit();
+
 		URI uri = URI.create(urlForServerJarDistribution);
 		try (InputStream inputStream = uri.toURL().openStream()) {
 			java.nio.file.Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
@@ -82,6 +84,7 @@ public class DataFlowIT {
 						.diskQuota(twoG)
 						.build())
 				.block();
+		log.info("pushed (but didn't start) the Data Flow server");
 
 
 		Map<String, String> env = new ConcurrentHashMap<>();
@@ -104,22 +107,32 @@ public class DataFlowIT {
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_INSTANCES", "1");
 
 		env.entrySet()
-				.parallelStream()
-				.forEach((e) ->
-						this.cloudFoundryOperations
-								.applications()
-								.setEnvironmentVariable(SetEnvironmentVariableApplicationRequest
-										.builder()
-										.name(appName)
-										.variableName(e.getKey())
-										.variableValue(e.getValue())
-										.build())
-								.block());
+				// TODO restore parallelStream()
+				.forEach((e) -> {
+					this.cloudFoundryOperations
+							.applications()
+							.setEnvironmentVariable(SetEnvironmentVariableApplicationRequest
+									.builder()
+									.name(appName)
+									.variableName(e.getKey())
+									.variableValue(e.getValue())
+									.build())
+							.block();
+
+					log.info("set environment variable for " + appName + ": "
+							+ e.getKey() + '=' + e.getValue());
+
+				});
+		log.info("set all " + env.size() + " environment variables.");
 
 		this.cloudFoundryOperations
 				.applications()
 				.start(StartApplicationRequest.builder().name(appName).build())
 				.block();
+
+		log.info("started the Spring Cloud " +
+				"Data Flow Cloud Foundry server.");
+
 
 	}
 
