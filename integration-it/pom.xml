@@ -13,32 +13,17 @@
         <cloudfoundry-client.version>2.3.0.RELEASE</cloudfoundry-client.version>
         <reactor-core.version>3.0.4.RELEASE</reactor-core.version>
         <reactor-netty.version>0.6.0.RELEASE</reactor-netty.version>
-
-<!--
-        <spring-cloud-deployer-resource-maven.version>1.1.1.RELEASE
-        </spring-cloud-deployer-resource-maven.version>
--->
     </properties>
     <dependencies>
-
-        <!--org.springframework.cloud.deployer.resource.maven-->
-      <!--  <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-deployer-resource-maven</artifactId>
-            <version>${spring-cloud-deployer-resource-maven.version}</version>
-        </dependency> -->
         <dependency>
             <groupId>cnj</groupId>
             <artifactId>it-support</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dataflow-rest-client</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
