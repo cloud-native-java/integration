@@ -59,18 +59,20 @@ public class ActivitiIT {
 		log.debug("activiti folder: " + projectFolder.getAbsolutePath());
 
 		// reset
-		Runnable services = () -> Stream.of(leader, worker)
+		Runnable apps = () -> Stream.of(leader, worker)
 				.parallel().forEach(app -> this.cloudFoundryService.destroyApplicationIfExists(app));
 
-		Runnable apps = () -> Stream.of(mysql, rmq)
+		Runnable routes = () -> this.cloudFoundryService.destroyOrphanedRoutes();
+
+		Runnable services = () -> Stream.of(mysql, rmq)
 				.parallel().forEach(svc -> this.cloudFoundryService.destroyServiceIfExists(svc));
 
-		Stream.of(apps, services)
-				.parallel().forEach(Runnable::run);
+		// apps must be reset first!
+		Stream.of(apps, routes, services).forEach(Runnable::run);
 
 		// create services required
-		Stream.of("p-mysql,100mb," + mysql, "cloudamqp,lemur," + rmq)
-				.map(x -> x.split(","))
+		Stream.of("p-mysql 100mb " + mysql, "cloudamqp lemur " + rmq)
+				.map(x -> x.split(" "))
 				.parallel()
 				.forEach(t -> this.cloudFoundryService.createService(t[0], t[1], t[2]));
 

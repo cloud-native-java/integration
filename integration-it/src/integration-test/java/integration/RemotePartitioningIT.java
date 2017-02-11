@@ -52,7 +52,8 @@ public class RemotePartitioningIT {
 		File projectFolder = new File(new File("."), "../remote-partitioning");
 		File leader = new File(projectFolder, "manifest-leader.yml"),
 				worker = new File(projectFolder, "manifest-worker.yml");
-		Assert.assertTrue(leader.exists() && worker.exists());
+		Assert.assertTrue("the manifest files  " + leader.getAbsolutePath() +
+				"and " + worker.getAbsolutePath() + " must exist", leader.exists() && worker.exists());
 		Stream.of(leader, worker).parallel()
 				.forEach(f -> this.cloudFoundryService.pushApplicationUsingManifest(f));
 	}
