@@ -59,7 +59,8 @@ public class ActivitiIT {
 		this.leaderManifest = new File(projectFolder, "manifest-leader.yml");
 		this.workerManifest = new File(projectFolder, "manifest-worker.yml");
 
-		log.debug("activiti folder: " + projectFolder.getAbsolutePath());
+		log.debug("activiti folder: "
+				+ projectFolder.getAbsolutePath());
 
 		// reset
 		Runnable apps = () -> Stream.of(leader, worker)
