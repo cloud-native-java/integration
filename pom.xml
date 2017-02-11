@@ -6,7 +6,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>integration</artifactId>
     <packaging>pom</packaging>
-
     <parent>
         <groupId>cnj</groupId>
         <artifactId>parent</artifactId>
