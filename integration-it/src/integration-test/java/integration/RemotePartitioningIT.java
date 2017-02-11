@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
@@ -56,7 +57,9 @@ public class RemotePartitioningIT {
 
 	@After
 	public void after() throws Throwable {
-		Stream.of(this.leader, this.worker).forEach(this.cloudFoundryService::destroyApplicationUsingManifest);
+		Stream.of(this.leader, this.worker)
+				.filter(Objects::nonNull)
+				.forEach(this.cloudFoundryService::destroyApplicationUsingManifest);
 	}
 
 	@Test
