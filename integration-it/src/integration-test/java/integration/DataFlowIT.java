@@ -88,7 +88,7 @@ public class DataFlowIT {
 	@After
 	public void after() throws Throwable {
 		if (null != this.serviceDefinitionsManifest) {
-			this.cloudFoundryService.destroyApplicationUsingManifest(this.serviceDefinitionsManifest);
+		//	this.cloudFoundryService.destroyApplicationUsingManifest(this.serviceDefinitionsManifest);
 		}
 	}
 
