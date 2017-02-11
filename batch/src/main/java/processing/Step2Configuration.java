@@ -15,10 +15,8 @@ import processing.email.InvalidEmailException;
 
 import javax.sql.DataSource;
 
-
 @Configuration
 class Step2Configuration {
-
 
 	@Bean
 	@StepScope // <1>
@@ -32,11 +30,10 @@ class Step2Configuration {
 				.resource(in)
 				.targetType(Person.class)
 				.delimited()
-					.delimiter(",")
-					.names(new String[]{"firstName", "age", "email"})
+				.delimiter(",")
+				.names(new String[]{"firstName", "age", "email"})
 				.build();
 	}
-
 
 	@Bean
 	ItemProcessor<Person, Person> emailValidatingProcessor(
