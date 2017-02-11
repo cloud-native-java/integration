@@ -155,8 +155,7 @@ public class DataFlowIT {
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_INSTANCES", "1");
 
 		env.entrySet()
-				.parallelStream()
-				.forEach(e -> {
+			.forEach(e -> {
 					this.cloudFoundryOperations
 							.applications()
 							.setEnvironmentVariable(

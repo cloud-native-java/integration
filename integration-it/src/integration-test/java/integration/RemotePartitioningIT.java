@@ -18,10 +18,11 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpMethod.GET;
-@Ignore
+
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  */
+@Ignore // TODO
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = RemotePartitioningIT.Config.class)
 public class RemotePartitioningIT {

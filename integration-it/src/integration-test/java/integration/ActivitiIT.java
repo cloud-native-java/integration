@@ -22,7 +22,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
-@Ignore
+
+@Ignore // TODO
 @SpringBootTest(classes = ActivitiIT.Config.class)
 @RunWith(SpringRunner.class)
 public class ActivitiIT {
