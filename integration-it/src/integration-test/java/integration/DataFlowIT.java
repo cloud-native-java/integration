@@ -81,8 +81,7 @@ public class DataFlowIT {
 
 	@After
 	public void after() throws Throwable {
-		Optional.ofNullable(this.serviceDefinitionsManifest)
-				.ifPresent(m -> this.cloudFoundryService.destroyApplicationUsingManifest(m));
+//		Optional.ofNullable(this.serviceDefinitionsManifest) .ifPresent(m -> this.cloudFoundryService.destroyApplicationUsingManifest(m));
 	}
 
 	private void deployDataFlowServer() throws Throwable {
