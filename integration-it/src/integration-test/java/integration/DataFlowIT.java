@@ -88,7 +88,7 @@ public class DataFlowIT {
 	@After
 	public void after() throws Throwable {
 		if (null != this.serviceDefinitionsManifest) {
-//			this.cloudFoundryService.destroyApplicationUsingManifest(this.serviceDefinitionsManifest);
+			//	this.cloudFoundryService.destroyApplicationUsingManifest(this.serviceDefinitionsManifest);
 		}
 	}
 
@@ -155,6 +155,7 @@ public class DataFlowIT {
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_INSTANCES", "1");
 
 		env.entrySet()
+				.parallelStream()
 				.forEach(e -> {
 					this.cloudFoundryOperations
 							.applications()
