@@ -1,10 +1,7 @@
 package integration;
 
 import cnj.CloudFoundryService;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,7 +18,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpMethod.GET;
-
+@Ignore
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  */
