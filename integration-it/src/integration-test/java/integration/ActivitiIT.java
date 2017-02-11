@@ -3,7 +3,10 @@ package integration;
 import cnj.CloudFoundryService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,14 +26,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
-@Ignore // TODO
 @SpringBootTest(classes = ActivitiIT.Config.class)
 @RunWith(SpringRunner.class)
 public class ActivitiIT {
-
-	@SpringBootApplication
-	public static class Config {
-	}
 
 	private final RestTemplate restTemplate = new RestTemplateBuilder()
 			.basicAuthorization("operator", "operator")
@@ -125,5 +123,9 @@ public class ActivitiIT {
 		Boolean endTimeNull = retryTemplate.execute(rt, retryContext -> false);
 		Assert.assertTrue("the endTime attribute should eventually return null",
 				endTimeNull);
+	}
+
+	@SpringBootApplication
+	public static class Config {
 	}
 }

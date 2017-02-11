@@ -40,19 +40,11 @@ import java.util.stream.StreamSupport;
 public class DataFlowIT {
 
 	private Log log = LogFactory.getLog(getClass());
-
-	@SpringBootApplication
-	public static class Config {
-	}
-
 	@Autowired
 	private CloudFoundryOperations cloudFoundryOperations;
-
 	private File serviceDefinitionsManifest;
-
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
-
 	private String appName = "cfdf";
 
 	@Before
@@ -87,9 +79,8 @@ public class DataFlowIT {
 
 	@After
 	public void after() throws Throwable {
-		if (null != this.serviceDefinitionsManifest) {
-			//	this.cloudFoundryService.destroyApplicationUsingManifest(this.serviceDefinitionsManifest);
-		}
+		Optional.ofNullable(this.serviceDefinitionsManifest)
+				.ifPresent(m -> this.cloudFoundryService.destroyApplicationUsingManifest(m));
 	}
 
 	private void deployDataFlowServer() throws Throwable {
@@ -155,7 +146,7 @@ public class DataFlowIT {
 		env.put("SPRING_CLOUD_DEPLOYER_CLOUDFOUNDRY_STREAM_INSTANCES", "1");
 
 		env.entrySet()
-			.forEach(e -> {
+				.forEach(e -> {
 					this.cloudFoundryOperations
 							.applications()
 							.setEnvironmentVariable(
@@ -284,5 +275,9 @@ public class DataFlowIT {
 
 		apps.forEach(x -> log.info("registering: " + x));
 		return apps;
+	}
+
+	@SpringBootApplication
+	public static class Config {
 	}
 }

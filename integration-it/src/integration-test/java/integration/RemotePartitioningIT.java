@@ -1,7 +1,10 @@
 package integration;
 
 import cnj.CloudFoundryService;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,19 +25,9 @@ import static org.springframework.http.HttpMethod.GET;
 /**
  * @author <a href="mailto:josh@joshlong.com">Josh Long</a>
  */
-@Ignore // TODO
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = RemotePartitioningIT.Config.class)
 public class RemotePartitioningIT {
-
-	@SpringBootApplication
-	public static class Config {
-
-		@Bean
-		public RestTemplate restTemplate() {
-			return new RestTemplate();
-		}
-	}
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -43,6 +36,7 @@ public class RemotePartitioningIT {
 	private CloudFoundryService cloudFoundryService;
 
 	private String mysql = "batch-mysql", rmq = "batch-rmq";
+
 	private File leader, worker;
 
 	@Before
@@ -92,5 +86,14 @@ public class RemotePartitioningIT {
 		Assert.assertEquals("there should be an identical number" +
 						" of records in the source and destination table",
 				status.get("people.count"), status.get("new_people.count"));
+	}
+
+	@SpringBootApplication
+	public static class Config {
+
+		@Bean
+		public RestTemplate restTemplate() {
+			return new RestTemplate();
+		}
 	}
 }
