@@ -30,42 +30,7 @@
 
         <plugins>
 
-            <!-- TODO REMOVE THIS IT'S INCORRECT & REDUNDANT! IT'S ALREADY SPECIFIED IN THE PARENT
-            -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <argLine>-Xms1024m -Xmx2048m</argLine>
-                    <skipTests>true</skipTests>
-                    <excludes>
-                        <exclude>**/*IT.java</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
 
-            <!--   integration tests -->
-            <!-- TODO REMOVE THIS IT'S INCORRECT & REDUNDANT! IT'S ALREADY SPECIFIED IN THE PARENT
-            -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <executions>
-
-                    <execution>
-                        <id>integration-tests</id>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                        <configuration>
-                            <skipTests>${skip.integration.tests}</skipTests>
-                            <argLine>-Xms1024m -Xmx2048m</argLine>
-                            <skipTests>${skip.integration.tests}</skipTests>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <!-- IT -->
             <plugin>
                 <groupId>org.jfrog.buildinfo</groupId>
