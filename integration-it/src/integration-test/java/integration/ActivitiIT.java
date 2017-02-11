@@ -3,6 +3,7 @@ package integration;
 import cnj.CloudFoundryService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +44,8 @@ public class ActivitiIT {
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
 
+	private File leaderManifest, workerManifest;
+
 	private Log log = LogFactory.getLog(getClass());
 
 	@Before
@@ -53,8 +56,8 @@ public class ActivitiIT {
 				leader = "activiti-leader", worker = "activiti-worker";
 
 		File projectFolder = new File(new File("."), "../activiti-integration");
-		File leaderManifest = new File(projectFolder, "manifest-leader.yml"),
-				workerManifest = new File(projectFolder, "manifest-worker.yml");
+		this.leaderManifest = new File(projectFolder, "manifest-leader.yml");
+		this.workerManifest = new File(projectFolder, "manifest-worker.yml");
 
 		log.debug("activiti folder: " + projectFolder.getAbsolutePath());
 
@@ -80,6 +83,12 @@ public class ActivitiIT {
 		Arrays.asList(leaderManifest, workerManifest)
 				.parallelStream()
 				.forEach(mf -> this.cloudFoundryService.pushApplicationUsingManifest(mf));
+	}
+
+	@After
+	public void after() throws Throwable {
+		Stream.of(this.leaderManifest, workerManifest)
+				.forEach(this.cloudFoundryService::destroyApplicationUsingManifest);
 	}
 
 	@Test

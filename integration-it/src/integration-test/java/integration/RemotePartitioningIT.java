@@ -1,6 +1,7 @@
 package integration;
 
 import cnj.CloudFoundryService;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,19 +44,27 @@ public class RemotePartitioningIT {
 	@Autowired
 	private CloudFoundryService cloudFoundryService;
 
+	private String mysql = "batch-mysql", rmq = "batch-rmq";
+	private File leader, worker;
+
 	@Before
 	public void before() throws Throwable {
-		String mysql = "batch-mysql", rmq = "batch-rmq";
 		Stream.of("p-mysql 100mb " + mysql, "cloudamqp lemur " + rmq)
 				.map(x -> x.split(" "))
 				.forEach(t -> this.cloudFoundryService.createServiceIfMissing(t[0], t[1], t[2]));
 		File projectFolder = new File(new File("."), "../remote-partitioning");
-		File leader = new File(projectFolder, "manifest-leader.yml"),
-				worker = new File(projectFolder, "manifest-worker.yml");
-		Assert.assertTrue("the manifest files  " + leader.getAbsolutePath() +
-				"and " + worker.getAbsolutePath() + " must exist", leader.exists() && worker.exists());
-		Stream.of(leader, worker).parallel()
+		this.leader = new File(projectFolder, "manifest-leader.yml");
+		this.worker = new File(projectFolder, "manifest-worker.yml");
+		Assert.assertTrue("the manifest files  " + this.leader.getAbsolutePath() +
+						"and " + this.worker.getAbsolutePath() + " must exist",
+				leader.exists() && worker.exists());
+		Stream.of(this.leader, this.worker).parallel()
 				.forEach(f -> this.cloudFoundryService.pushApplicationUsingManifest(f));
+	}
+
+	@After
+	public void after() throws Throwable {
+		Stream.of(this.leader, this.worker).forEach(this.cloudFoundryService::destroyApplicationUsingManifest);
 	}
 
 	@Test
