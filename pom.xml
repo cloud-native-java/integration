@@ -26,8 +26,17 @@
         <module>task</module>
         <module>integration-it</module>
     </modules>
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> d73faf76fdb1d3dbaf8a610b058d9bce5af80b10
     <build>
+
         <plugins>
+
+            <!-- IT -->
             <plugin>
                 <groupId>org.jfrog.buildinfo</groupId>
                 <artifactId>artifactory-maven-plugin</artifactId>
