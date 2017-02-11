@@ -9,11 +9,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>integration-it</artifactId>
-    <properties>
-        <cloudfoundry-client.version>2.3.0.RELEASE</cloudfoundry-client.version>
-        <reactor-core.version>3.0.4.RELEASE</reactor-core.version>
-        <reactor-netty.version>0.6.0.RELEASE</reactor-netty.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cnj</groupId>
@@ -39,31 +35,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <!-- TODO this should live in the `parent` build! The question is: what else will this conflict? (and it *will* conflict..)
-    -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.cloudfoundry</groupId>
-                <artifactId>cloudfoundry-client-reactor</artifactId>
-                <version>${cloudfoundry-client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.cloudfoundry</groupId>
-                <artifactId>cloudfoundry-operations</artifactId>
-                <version>${cloudfoundry-client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.projectreactor</groupId>
-                <artifactId>reactor-core</artifactId>
-                <version>${reactor-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.projectreactor.ipc</groupId>
-                <artifactId>reactor-netty</artifactId>
-                <version>${reactor-netty.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>
