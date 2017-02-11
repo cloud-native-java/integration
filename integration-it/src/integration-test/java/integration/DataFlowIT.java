@@ -7,6 +7,7 @@ import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.PushApplicationRequest;
 import org.cloudfoundry.operations.applications.SetEnvironmentVariableApplicationRequest;
 import org.cloudfoundry.operations.applications.StartApplicationRequest;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,15 +54,13 @@ public class DataFlowIT {
 
 	@Before
 	public void deploy() throws Throwable {
-//		deployServiceDefinitions();
+		deployServiceDefinitions();
 		deployDataFlowServer();
 	}
 
 	@Test
 	public void deployTasksAndStreams() throws Exception {
-		DataFlowTemplate df = this.dataFlowTemplate(
-				this.cloudFoundryService.urlForApplication(this.appName));
-
+		DataFlowTemplate df = this.dataFlowTemplate(this.appName);
 		appDefinitions()
 				.parallelStream()
 				.forEach(u -> {
@@ -87,8 +86,6 @@ public class DataFlowIT {
 
 		// deploy the DF server
 		String serverRedis = "cfdf-redis", serverMysql = "cfdf-mysql", serverRabbit = "cfdf-rabbit";
-
-//		this.cloudFoundryService.destroyApplicationIfExists(appName);
 		Stream.of("rediscloud 100mb " + serverRedis,
 				"cloudamqp lemur " + serverRabbit,
 				"p-mysql 100mb " + serverMysql)
@@ -98,8 +95,7 @@ public class DataFlowIT {
 
 		String urlForServerJarDistribution = this.serverJarUrl();
 		File cfdfJar = new File(System.getProperty("user.home"), "cfdf.jar");
-		Assert.assertTrue(cfdfJar.getParentFile().exists() ||
-				cfdfJar.getParentFile().mkdirs());
+		Assert.assertTrue(cfdfJar.getParentFile().exists() || cfdfJar.getParentFile().mkdirs());
 
 		Path targetFile = cfdfJar.toPath();
 		if (!cfdfJar.exists()) {
@@ -150,15 +146,16 @@ public class DataFlowIT {
 
 		env.entrySet()
 				.parallelStream()
-				.forEach((e) -> {
+				.forEach(e -> {
 					this.cloudFoundryOperations
 							.applications()
-							.setEnvironmentVariable(SetEnvironmentVariableApplicationRequest
-									.builder()
-									.name(appName)
-									.variableName(e.getKey())
-									.variableValue(e.getValue())
-									.build())
+							.setEnvironmentVariable(
+									SetEnvironmentVariableApplicationRequest
+											.builder()
+											.name(appName)
+											.variableName(e.getKey())
+											.variableValue(e.getValue())
+											.build())
 							.block();
 
 					log.info("set environment variable for " + appName + ": " + e.getKey() + '=' + e.getValue());
@@ -166,6 +163,21 @@ public class DataFlowIT {
 
 		log.info("set all " + env.size() + " environment variables.");
 
+		// bind the relevant services to DF
+		Stream.of(serverMysql, serverRedis)
+				.forEach(svc -> {
+
+					this.cloudFoundryOperations.services()
+							.bind(BindServiceInstanceRequest
+									.builder()
+									.applicationName(appName)
+									.serviceInstanceName(svc)
+									.build())
+							.block();
+					log.info("binding " + svc + " to " + appName);
+				});
+
+		// start
 		this.cloudFoundryOperations
 				.applications()
 				.start(StartApplicationRequest
@@ -233,7 +245,9 @@ public class DataFlowIT {
 	}
 
 	private DataFlowTemplate dataFlowTemplate(String cfDfServerName) throws Exception {
-		return Optional.ofNullable(this.cloudFoundryService.urlForApplication(cfDfServerName))
+		String urlForApplication = this.cloudFoundryService.urlForApplication(cfDfServerName);
+		log.info("attempting to create a DataFlowTemplate using the following API endpoint " + urlForApplication);
+		return Optional.ofNullable(urlForApplication)
 				.map(u -> new DataFlowTemplate(URI.create(u), new RestTemplate()))
 				.orElseThrow(() -> new RuntimeException(
 						"can't find a URI for the Spring Cloud Data Flow server!"));
