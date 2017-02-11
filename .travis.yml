@@ -8,6 +8,6 @@ cache:
     - $HOME/.m2/repository/
 
 script:
-  -  mvn -P integration-test verify deploy
+  -  mvn -e -P integration-test verify deploy
 
 
