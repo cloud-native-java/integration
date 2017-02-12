@@ -8,7 +8,6 @@ import org.cloudfoundry.operations.applications.PushApplicationRequest;
 import org.cloudfoundry.operations.applications.SetEnvironmentVariableApplicationRequest;
 import org.cloudfoundry.operations.applications.StartApplicationRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,13 +74,6 @@ public class DataFlowIT {
 		File projectFolder = new File(new File("."), "../dataflow/server-definitions");
 		serviceDefinitionsManifest = new File(projectFolder, "manifest.yml");
 		this.cloudFoundryService.pushApplicationUsingManifest(serviceDefinitionsManifest);
-	}
-
-
-
-	@After
-	public void after() throws Throwable {
-//		Optional.ofNullable(this.serviceDefinitionsManifest) .ifPresent(m -> this.cloudFoundryService.destroyApplicationUsingManifest(m));
 	}
 
 	private void deployDataFlowServer() throws Throwable {
