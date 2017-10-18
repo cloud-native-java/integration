@@ -23,7 +23,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-
+import java.io.File;
 import javax.sql.DataSource;
 
 @Configuration
@@ -79,10 +79,11 @@ public class BatchConfiguration {
 	@Bean
 	@StepScope
 	FlatFileItemReader<Contact> fileReader(
-			@Value("file://#{jobParameters['file']}") Resource pathToFile) throws Exception {
+			@Value("file://#{jobParameters['file']}") File pathToFile) throws Exception {
+		Resource resource = new UrlResource(pathToFile.toURI());
 		return new FlatFileItemReaderBuilder<Contact>()
 				.name("file-reader")
-				.resource(pathToFile)
+				.resource(resource)
 				.targetType(Contact.class)
 				.delimited().names("fullName,email".split(","))
 				.build();
